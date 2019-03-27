@@ -3,9 +3,44 @@
 //===================================================================
 //Auxiliary funtions and structures
 
-bool isPhysicalDeviceSuitable(VkPhysicalDevice dev){
+struct queueFamilyIndices{
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+
+	bool isComplete(){
+		return graphicsFamily.has_value() && presentFamily.has_value();
+	}
+};
+
+queueFamilyIndices findQueueFamilies(VkPhysicalDevice dev, VkSurfaceKHR surface){
+	queueFamilyIndices indices;
+	VkBool32 presentSupport;
+	uint32_t queueFamilyCount=0;
+
+	vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, nullptr);
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, queueFamilies.data());
+
+	for(int i=0; i<queueFamilyCount; i++){
+		if(	queueFamilies[i].queueCount > 0 && 
+			(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)){
+				indices.graphicsFamily = i;
+		}
+
+		presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(dev, i, surface, &presentSupport);
+		if(queueFamilies[i].queueCount > 0 && presentSupport){
+			indices.presentFamily = i;
+		}
+	}
+
+	return indices;
+}
+
+bool isPhysicalDeviceSuitable(VkPhysicalDevice dev, VkSurfaceKHR surface){
+	queueFamilyIndices ind = findQueueFamilies(dev, surface);
 	//better suitability check TBA
-	return true;
+	return ind.isComplete();
 }
 
 //===================================================================
@@ -78,7 +113,7 @@ void DisplayManager::pickPhysicalDevice(){
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 	for(int i=0; i<deviceCount; i++){
-		if(isPhysicalDeviceSuitable(devices[i])){
+		if(isPhysicalDeviceSuitable(devices[i],surface)){
 			physDevice = devices[i];
 			break;
 		}
@@ -87,6 +122,34 @@ void DisplayManager::pickPhysicalDevice(){
 	if(physDevice == VK_NULL_HANDLE)
 		throw std::runtime_error("None of the Available GPUs support the desired operations");
 }
+
+void DisplayManager::createLogicalDevice(){
+	float queuePriorities;
+	//Queue creation information
+	queueFamilyIndices ind = findQueueFamilies(physDevice,surface);
+	VkDeviceQueueCreateInfo queueCreateInfo= {};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	queueCreateInfo.queueFamilyIndex = ind.graphicsFamily.value();
+	queueCreateInfo.queueCount = 1;
+	queuePriorities = 1.0f;
+	queueCreateInfo.pQueuePriorities = &queuePriorities;
+
+	//Desired features for the GPU
+	VkPhysicalDeviceFeatures devFeat = {};
+
+	//Information that will be used to create the logical device
+	VkDeviceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pEnabledFeatures = &devFeat;
+
+	//Actual creation of the logical device
+	if(vkCreateDevice(physDevice, &createInfo, nullptr, &device) != VK_SUCCESS){
+		throw std::runtime_error("failed to create logical device");
+	}
+}
+
 
 //===================================================================
 //Public Methods implementations

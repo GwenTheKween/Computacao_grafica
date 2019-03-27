@@ -33,6 +33,7 @@ private:
 	void createInstance();
 	void createSurface();
 	void pickPhysicalDevice();
+	void createLogicalDevice();
 
 public:
 	DisplayManager(int = 800, int = 600);
