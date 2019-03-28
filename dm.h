@@ -25,9 +25,13 @@ private:
 	VkDevice device;
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
+	VkSwapchainKHR swapchain;
+	std::vector<VkImage> swapchainImages;
+	VkFormat swapchainImageFormat;
+	VkExtent2D swapchainExtent;
 
 	//General Purpose Members
-	const int width, height;
+	const uint32_t width, height;
 
 	//private methods
 	void initWindow();
@@ -36,6 +40,7 @@ private:
 	void createSurface();
 	void pickPhysicalDevice();
 	void createLogicalDevice();
+	void createSwapChain();
 
 public:
 	DisplayManager(int = 800, int = 600);

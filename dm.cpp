@@ -107,6 +107,42 @@ bool isPhysicalDeviceSuitable(VkPhysicalDevice dev, VkSurfaceKHR surface){
 	return ind.isComplete() && checkExtensionSupport(dev, surface) && checkSwapChainSupport(dev, surface);
 }
 
+VkSurfaceFormatKHR chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> availableFormats){
+	//if the surface doesn't have a preferred format, we choose RGBA with SRGB colorspace
+	if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED){
+		return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+	}
+
+	//if it has, we frst check that that format is available
+	for(int i=0; i<availableFormats.size(); i++){
+		if(availableFormats[i].format == VK_FORMAT_B8G8R8A8_UNORM && availableFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			return availableFormats[i];
+		}
+	}
+
+	//if not, we'll just take the first available
+	return availableFormats[0];
+}
+
+VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& cap, uint32_t width, uint32_t height){
+	if(cap.currentExtent.width != std::numeric_limits<uint32_t>::max()){
+		return cap.currentExtent;
+	}else{
+		VkExtent2D actualExtent = {width, height};
+		if(cap.maxImageExtent.width > actualExtent.width){
+			actualExtent.width = (cap.maxImageExtent.width > cap.minImageExtent.width) ? cap.maxImageExtent.width : cap.minImageExtent.width;
+		}else{
+			actualExtent.width = (cap.maxImageExtent.width > actualExtent.width) ? cap.maxImageExtent.width : actualExtent.width;
+		}
+		if(cap.maxImageExtent.height > actualExtent.height){
+			actualExtent.height = (cap.maxImageExtent.height > cap.minImageExtent.height) ? cap.maxImageExtent.height : cap.minImageExtent.height;
+		}else{
+			actualExtent.height = (cap.maxImageExtent.height > actualExtent.height) ? cap.maxImageExtent.height : actualExtent.height;
+		}
+		return actualExtent;
+	}
+}
+
 //===================================================================
 //Private Methods implementations
 
@@ -128,7 +164,9 @@ void DisplayManager::initVulkan(){
 
 	pickPhysicalDevice();
 
-//	createLogicalDevice();
+	createLogicalDevice();
+
+	createSwapChain();
 }
 
 void DisplayManager::createInstance(){
@@ -232,6 +270,52 @@ void DisplayManager::createLogicalDevice(){
 	vkGetDeviceQueue(device,ind.presentFamily.value(), 0, &presentQueue);
 }
 
+void DisplayManager::createSwapChain(){
+	swapChainSupportDetails details = querySwapChainSupport(physDevice, surface);
+	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(details.formats);
+	VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	VkExtent2D extent = chooseSwapExtent(details.capabilities,width,height);
+
+	uint32_t imageCount = details.capabilities.minImageCount + 1;
+	if(details.capabilities.maxImageCount > 0){
+		imageCount = (imageCount > details.capabilities.maxImageCount) ? imageCount : details.capabilities.maxImageCount;
+	}
+
+	VkSwapchainCreateInfoKHR createInfo;
+	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	createInfo.surface = surface;
+	createInfo.minImageCount = imageCount;
+	createInfo.imageFormat = surfaceFormat.format;
+	createInfo.imageColorSpace = surfaceFormat.colorSpace;
+	createInfo.imageExtent = extent;
+	createInfo.imageArrayLayers = 1;
+	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	createInfo.preTransform = details.capabilities.currentTransform;
+	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	createInfo.presentMode = presentMode;
+	createInfo.clipped = VK_TRUE;
+	createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	queueFamilyIndices ind = findQueueFamilies(physDevice, surface);
+	uint32_t indices[] = {ind.graphicsFamily.value(), ind.presentFamily.value()};
+	if(indices[0] == indices[1]){
+		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; 
+	}else{
+		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		createInfo.queueFamilyIndexCount = 2;
+		createInfo.pQueueFamilyIndices = indices;
+	}
+
+	if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain) != VK_SUCCESS){
+		throw std::runtime_error("unable to create swapchain");
+	}
+
+	vkGetSwapchainImagesKHR(device,swapchain, &imageCount, nullptr);
+	swapchainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(device,swapchain, &imageCount, swapchainImages.data());
+	swapchainImageFormat = surfaceFormat.format;
+	swapchainExtent = extent;
+}
 
 //===================================================================
 //Public Methods implementations
@@ -248,6 +332,7 @@ DisplayManager::DisplayManager(int wid, int hei):
 	}
 
 DisplayManager::~DisplayManager(){
+	vkDestroySwapchainKHR(device,swapchain, nullptr);
 	vkDestroyDevice(device, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
