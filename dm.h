@@ -23,6 +23,8 @@ private:
 	VkSurfaceKHR surface;
 	VkPhysicalDevice physDevice;
 	VkDevice device;
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
 
 	//General Purpose Members
 	const int width, height;
