@@ -33,7 +33,7 @@ struct swapChainSupportDetails{
 queueFamilyIndices findQueueFamilies(VkPhysicalDevice dev, VkSurfaceKHR surface){
 	queueFamilyIndices indices;
 	VkBool32 presentSupport;
-	uint32_t queueFamilyCount=0;
+	uint32_t queueFamilyCount = 0;
 
 	vkGetPhysicalDeviceQueueFamilyProperties(dev, &queueFamilyCount, nullptr);
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
@@ -98,12 +98,12 @@ swapChainSupportDetails querySwapChainSupport(VkPhysicalDevice dev, VkSurfaceKHR
 
 bool checkSwapChainSupport(VkPhysicalDevice dev, VkSurfaceKHR surface){
 	swapChainSupportDetails details = querySwapChainSupport(dev,surface);
+	printf("%d\t%d\n",details.formats.size(),details.presentMode.size());
 	return !details.formats.empty() && !details.presentMode.empty();
 }
 
 bool isPhysicalDeviceSuitable(VkPhysicalDevice dev, VkSurfaceKHR surface){
 	queueFamilyIndices ind = findQueueFamilies(dev, surface);
-	//better suitability check TBA
 	return ind.isComplete() && checkExtensionSupport(dev, surface) && checkSwapChainSupport(dev, surface);
 }
 
@@ -216,7 +216,7 @@ void DisplayManager::pickPhysicalDevice(){
 
 	for(int i=0; i<deviceCount; i++){
 		if(isPhysicalDeviceSuitable(devices[i],surface)){
-			physDevice = devices[i];
+			this->physDevice = devices[i];
 			break;
 		}
 	}
@@ -323,7 +323,7 @@ void DisplayManager::createSwapChain(){
 DisplayManager::DisplayManager(int wid, int hei):
 	width(wid),
 	height(hei),
-	device(VK_NULL_HANDLE)
+	physDevice(VK_NULL_HANDLE)
 	{
 
 	initWindow();
@@ -339,4 +339,10 @@ DisplayManager::~DisplayManager(){
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+void DisplayManager::run(){
+	while(!glfwWindowShouldClose(window)){
+		glfwPollEvents();
+	}
 }

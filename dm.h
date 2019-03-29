@@ -42,9 +42,12 @@ private:
 	void createLogicalDevice();
 	void createSwapChain();
 
+
 public:
 	DisplayManager(int = 800, int = 600);
 	~DisplayManager();
+
+	void run();
 };
 
 #endif
