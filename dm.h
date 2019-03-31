@@ -36,6 +36,8 @@ private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapchainFrambuffer;
+	VkCommandPool commandPool;
+	std::vector<VkCommandBuffer> commandBuffers;
 
 	//General Purpose Members
 	uint32_t width, height;
@@ -52,6 +54,8 @@ private:
 	void createRenderPass();
 	void createGraphicsPipeline();
 	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffers();
 
 
 public:
