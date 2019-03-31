@@ -35,6 +35,7 @@ private:
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
+	std::vector<VkFramebuffer> swapchainFrambuffer;
 
 	//General Purpose Members
 	uint32_t width, height;
@@ -50,6 +51,7 @@ private:
 	void createImageViews();
 	void createRenderPass();
 	void createGraphicsPipeline();
+	void createFramebuffers();
 
 
 public:

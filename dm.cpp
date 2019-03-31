@@ -99,7 +99,6 @@ swapChainSupportDetails querySwapChainSupport(VkPhysicalDevice dev, VkSurfaceKHR
 
 bool checkSwapChainSupport(VkPhysicalDevice dev, VkSurfaceKHR surface){
 	swapChainSupportDetails details = querySwapChainSupport(dev,surface);
-	printf("%d\t%d\n",details.formats.size(),details.presentMode.size());
 	return !details.formats.empty() && !details.presentMode.empty();
 }
 
@@ -207,6 +206,8 @@ void DisplayManager::initVulkan(){
 	createRenderPass();
 
 	createGraphicsPipeline();
+
+	createFramebuffers();
 }
 
 void DisplayManager::createInstance(){
@@ -558,6 +559,28 @@ void DisplayManager::createGraphicsPipeline(){
 	vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }
 
+void DisplayManager::createFramebuffers(){
+	swapchainFrambuffer.resize(swapchainImageViews.size());
+
+	for(int i = 0; i < swapchainImageViews.size(); i++){
+		VkImageView attachments[] = {
+			swapchainImageViews[i]
+		};
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = swapchainExtent.width;
+		framebufferInfo.height = swapchainExtent.height;
+		framebufferInfo.layers = 1;
+
+		if(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapchainFrambuffer[i]) != VK_SUCCESS){
+			throw std::runtime_error("failed to create framebuffers");
+		}
+	}
+}
 
 //===================================================================
 //Public Methods implementations
@@ -567,6 +590,9 @@ DisplayManager::DisplayManager():
 	{}
 
 DisplayManager::~DisplayManager(){
+	for(size_t i = 0; i< swapchainFrambuffer.size(); i++){
+		vkDestroyFramebuffer(device, swapchainFrambuffer[i], nullptr);
+	}
 	vkDestroyPipeline(device, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(device,pipelineLayout,nullptr);
 	vkDestroyRenderPass(device,renderPass,nullptr);
