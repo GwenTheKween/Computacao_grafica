@@ -8,6 +8,8 @@
 #include <optional>
 #include <vector>
 #include <set>
+#include <string>
+#include <fstream>
 
 //graphic libraries
 #define GLFW_INCLUDE_VULKAN
@@ -43,6 +45,7 @@ private:
 	void createLogicalDevice();
 	void createSwapChain();
 	void createImageViews();
+	void createGraphicsPipeline();
 
 
 public:

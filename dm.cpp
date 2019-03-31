@@ -144,6 +144,39 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& cap, uint32_t width,
 	}
 }
 
+static std::vector<char> readFile(const std::string& filename){
+	//File starts at the end
+	std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+	if(!file.is_open()){
+		throw std::runtime_error("failed to open shader file");
+	}
+
+	//we use the position at the end of the file to determine it's size
+	size_t fileSize = (size_t)file.tellg();
+	//allocate a buffer with the correct size
+	std::vector<char> buffer(fileSize);
+	//go back to the beginning and read all the file
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+	file.close();
+	return buffer;
+}
+
+VkShaderModule createShaderModule(const std::vector<char>& code, VkDevice device){
+	VkShaderModuleCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.codeSize = code.size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+	VkShaderModule shaderModule;
+	if(vkCreateShaderModule(device,&createInfo, nullptr, &shaderModule) != VK_SUCCESS){
+		throw std::runtime_error("Failed to create shader module");
+	}
+
+	return shaderModule;
+}
+
 //===================================================================
 //Private Methods implementations
 
@@ -168,6 +201,10 @@ void DisplayManager::initVulkan(){
 	createLogicalDevice();
 
 	createSwapChain();
+
+	createImageViews();
+
+	createGraphicsPipeline();
 }
 
 void DisplayManager::createInstance(){
@@ -343,6 +380,35 @@ void DisplayManager::createImageViews(){
 		}
 	}
 }
+
+void DisplayManager::createGraphicsPipeline(){
+	//first we need to load the shader code (defined in other files) and wrap them around shader modules
+	auto vertexShaderCode = readFile("shaders/vert.spv");
+	auto fragShaderCode = readFile("shaders/frag.spv");
+
+	VkShaderModule vertShaderModule = createShaderModule(vertexShaderCode, device);
+	VkShaderModule fragShaderModule = createShaderModule(fragShaderCode, device);
+
+	//next we need to create shaders, to link them to the GPU
+	VkPipelineShaderStageCreateInfo vetexShaderInfo= {};
+	vertexShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertexShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertexShaderInfo.module = vertShaderModule;
+	vertexShaderInfo.pName = "main"; //name of the entrypoint function of the module
+
+	VkPipelineShaderStageCreateInfo fragShaderInfo= {};
+	fragShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	fragShaderInfo.module = fragShaderModule;
+	fragShaderInfo.pName = "main";
+
+	vkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderInfo,fragShaderInfo};
+
+	//finally we can destroy the shader modules, as they have already been lined to the GPU
+	vkDestroyShaderModule(device, vertShaderModule, nullptr);
+	vkDestroyShaderModule(device, fragShaderModule, nullptr);
+}
+
 
 //===================================================================
 //Public Methods implementations
