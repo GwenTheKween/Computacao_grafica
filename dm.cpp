@@ -204,6 +204,8 @@ void DisplayManager::initVulkan(){
 
 	createImageViews();
 
+	createRenderPass();
+
 	createGraphicsPipeline();
 }
 
@@ -381,6 +383,40 @@ void DisplayManager::createImageViews(){
 	}
 }
 
+void DisplayManager::createRenderPass(){
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = swapchainImageFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	//ignore the stencil buffer
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef = {};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+
+	if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS){
+		throw std::runtime_error("failed to create render pass");
+	}
+}
+
 void DisplayManager::createGraphicsPipeline(){
 	//first we need to load the shader code (defined in other files) and wrap them around shader modules
 	auto vertexShaderCode = readFile("shaders/vert.spv");
@@ -390,7 +426,7 @@ void DisplayManager::createGraphicsPipeline(){
 	VkShaderModule fragShaderModule = createShaderModule(fragShaderCode, device);
 
 	//next we need to create shaders, to link them to the GPU
-	VkPipelineShaderStageCreateInfo vetexShaderInfo= {};
+	VkPipelineShaderStageCreateInfo vertexShaderInfo= {};
 	vertexShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertexShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 	vertexShaderInfo.module = vertShaderModule;
@@ -398,12 +434,12 @@ void DisplayManager::createGraphicsPipeline(){
 
 	VkPipelineShaderStageCreateInfo fragShaderInfo= {};
 	fragShaderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	fragShaderInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	fragShaderInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	fragShaderInfo.module = fragShaderModule;
 	fragShaderInfo.pName = "main";
 
 	//they are now ready to be linked to the GPU
-	vkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderInfo,fragShaderInfo};
+	VkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderInfo,fragShaderInfo};
 
 	//information about how vertices will be inputted
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
@@ -429,7 +465,7 @@ void DisplayManager::createGraphicsPipeline(){
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
 	viewport.width = (float) swapchainExtent.width;
-	ciewport.height = (float) swapchainExtent.height;
+	viewport.height = (float) swapchainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
@@ -448,13 +484,13 @@ void DisplayManager::createGraphicsPipeline(){
 	//sets the rasterization
 	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizerr.depthClampEnable = VK_FALSE;
+	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = VK_POLIGON_MODE_FILL;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-	rasterizer.depthBiasEnable = VK_FAKSE;
+	rasterizer.depthBiasEnable = VK_FALSE;
 
 	//disable multisampling
 	VkPipelineMultisampleStateCreateInfo multisampling = {};
@@ -491,12 +527,30 @@ void DisplayManager::createGraphicsPipeline(){
 
 	//pipelineLayout can store information about variables that can be changed, such as transformation matrices or texture samplers
 	//even if we dont use any, we still need an empty struct
-	VkPipelineLayoutCreateInfo pipelineLayotCreate = {};
-	pipelineLayotCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutcreate.setLayoutCount = 0;
+	VkPipelineLayoutCreateInfo pipelineLayoutCreate = {};
+	pipelineLayoutCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreate.setLayoutCount = 0;
 
 	if(vkCreatePipelineLayout(device, &pipelineLayoutCreate, nullptr, &pipelineLayout) != VK_SUCCESS){
 		throw std::runtime_error("Failed to create the pipeline layout!");
+	}
+
+	//at last, we have all we need to create the graphics pipeline
+	VkGraphicsPipelineCreateInfo pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.stageCount = 2;
+	pipelineInfo.pStages = shaderStages;
+	pipelineInfo.pVertexInputState = &vertexInputInfo;
+	pipelineInfo.pInputAssemblyState = &inputAssembly;
+	pipelineInfo.pViewportState = &viewportState;
+	pipelineInfo.pRasterizationState = &rasterizer;
+	pipelineInfo.pColorBlendState = &colorBlend;
+	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.renderPass = renderPass;
+	pipelineInfo.subpass = 0;
+
+	if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS){
+		throw std::runtime_error("Failed to create Graphics pipeline");
 	}
 
 	//finally we can destroy the shader modules, as they have already been lined to the GPU
@@ -513,7 +567,9 @@ DisplayManager::DisplayManager():
 	{}
 
 DisplayManager::~DisplayManager(){
-	vkDestroyPipelineLayout(device,pipelineLayout,nullptr)
+	vkDestroyPipeline(device, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(device,pipelineLayout,nullptr);
+	vkDestroyRenderPass(device,renderPass,nullptr);
 	for(size_t i = 0; i<swapchainImageViews.size(); i++){
 		vkDestroyImageView(device,swapchainImageViews[i], nullptr);
 	}
