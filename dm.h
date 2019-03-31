@@ -32,6 +32,7 @@ private:
 	std::vector<VkImageView> swapchainImageViews;
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
+	VkPipelineLayout pipelineLayout;
 
 	//General Purpose Members
 	uint32_t width, height;

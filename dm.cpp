@@ -402,7 +402,102 @@ void DisplayManager::createGraphicsPipeline(){
 	fragShaderInfo.module = fragShaderModule;
 	fragShaderInfo.pName = "main";
 
+	//they are now ready to be linked to the GPU
 	vkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderInfo,fragShaderInfo};
+
+	//information about how vertices will be inputted
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputInfo.vertexBindingDescriptionCount = 0;
+	vertexInputInfo.pVertexBindingDescriptions = nullptr;
+	vertexInputInfo.vertexAttributeDescriptionCount = 0;
+	vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+	//Input Assembly is how to assemble the points we give the object. 
+	//For example, make a triangle out of every 3 points, or draw them separately.
+	//for the class project, we'll be using no connection
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	//topology used specifically for the tutorial
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	//actual topology that will be used for the project
+	//inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+	//creates a default viewport
+	VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float) swapchainExtent.width;
+	ciewport.height = (float) swapchainExtent.height;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	//doesn't scissor anything of the viewport out
+	VkRect2D scissor = {};
+	scissor.offset = {0,0};
+	scissor.extent = swapchainExtent;
+
+	VkPipelineViewportStateCreateInfo viewportState = {};
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportState.viewportCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.scissorCount = 1;
+	viewportState.pScissors = &scissor;
+
+	//sets the rasterization
+	VkPipelineRasterizationStateCreateInfo rasterizer = {};
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizerr.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLIGON_MODE_FILL;
+	rasterizer.lineWidth = 1.0f;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.depthBiasEnable = VK_FAKSE;
+
+	//disable multisampling
+	VkPipelineMultisampleStateCreateInfo multisampling = {};
+	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampling.sampleShadingEnable = VK_FALSE;
+	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	//disable color blending
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_FALSE;
+	VkPipelineColorBlendStateCreateInfo colorBlend = {};
+	colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlend.logicOpEnable = VK_FALSE;
+	colorBlend.attachmentCount = 1;
+	colorBlend.pAttachments = &colorBlendAttachment;
+
+	//Dynamic state:
+	//If we want to be able to change the viewport, line width, blend or other parts of the graphics pipeline, we can set this structure:
+	/*
+	   VkDynamicState dynamicState[]={
+	   		VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_LINE_WIDTH
+			//Or other things that we want dinamically changing
+	   }
+	   VkPipelineDynamicStateCreateInfo dynamicState = {};
+	   dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	   dynamicState.dynamicStateCount = 2;//actual count of dynamic states
+	   dynamicState.pDynamicStates = &dynamicState;
+	*/
+	//doing so results in the creation of the pipeline ignoring the information passed when created (for viewport, for example)
+	//and instead requesting the info at drawing time
+	//if nothing is dynamic, we can set the pointer to null when creating the graphics pipeline
+
+	//pipelineLayout can store information about variables that can be changed, such as transformation matrices or texture samplers
+	//even if we dont use any, we still need an empty struct
+	VkPipelineLayoutCreateInfo pipelineLayotCreate = {};
+	pipelineLayotCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutcreate.setLayoutCount = 0;
+
+	if(vkCreatePipelineLayout(device, &pipelineLayoutCreate, nullptr, &pipelineLayout) != VK_SUCCESS){
+		throw std::runtime_error("Failed to create the pipeline layout!");
+	}
 
 	//finally we can destroy the shader modules, as they have already been lined to the GPU
 	vkDestroyShaderModule(device, vertShaderModule, nullptr);
@@ -418,6 +513,7 @@ DisplayManager::DisplayManager():
 	{}
 
 DisplayManager::~DisplayManager(){
+	vkDestroyPipelineLayout(device,pipelineLayout,nullptr)
 	for(size_t i = 0; i<swapchainImageViews.size(); i++){
 		vkDestroyImageView(device,swapchainImageViews[i], nullptr);
 	}
