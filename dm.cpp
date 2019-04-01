@@ -185,6 +185,19 @@ VkShaderModule createShaderModule(const std::vector<char>& code, VkDevice device
 	return shaderModule;
 }
 
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice){
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(physDevice, &memProperties);
+
+	for(uint32_t i=0; i< memProperties.memoryTypeCount; i++){
+		if((typeFilter & (1<<i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties){
+			return i;
+		}
+	}
+
+	throw std::runtime_error("failed to find suitable memory type!");
+}
+
 //===================================================================
 //Private setup Methods implementations
 
@@ -219,6 +232,8 @@ void DisplayManager::initVulkan(){
 	createFramebuffers();
 
 	createCommandPool();
+
+	createVertexBuffers();
 
 	createCommandBuffers();
 
@@ -466,11 +481,13 @@ void DisplayManager::createGraphicsPipeline(){
 
 	//information about how vertices will be inputted
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+	auto bindingDescription = vertex::getBindingDescription();
+	auto attributeDescription = vertex::getAttributeDescription();
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr;
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescription.size());
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
 
 	//Input Assembly is how to assemble the points we give the object. 
 	//For example, make a triangle out of every 3 points, or draw them separately.
@@ -478,9 +495,9 @@ void DisplayManager::createGraphicsPipeline(){
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	//topology used specifically for the tutorial
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	//inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	//actual topology that will be used for the project
-	//inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	//creates a default viewport
@@ -654,6 +671,10 @@ void DisplayManager::createCommandBuffers(){
 
 		vkCmdBindPipeline(commandBuffers[i],VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
+		VkBuffer vertexBuffers[] = {vertexBuffer};
+		VkDeviceSize offsets[] = {0};
+		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+
 		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffers[i]);
@@ -728,6 +749,48 @@ void DisplayManager::drawFrame(){
 	vkQueueWaitIdle(presentQueue);
 }
 
+void DisplayManager::createVertexBuffers(){
+	VkBufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = sizeof(vertex) * MAX_VERTICES;
+	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if(vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS){
+		throw std::runtime_error("failed to create vertex buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,physDevice);
+
+	if(vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS){
+		throw std::runtime_error("failed to allocate memory");
+	}
+
+	vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+
+	std::vector<vertex> vertices; 
+	vertex v;
+	v.pos = vec2(0.0f,0.5f);
+	v.color = vec3(1.0f, 0.0f, 0.0f);
+	vertices.push_back(v);
+	v.pos = vec2(0.5f, 0.5f);
+	vertices.push_back(v);
+	v.pos = vec2(-0.5f, 0.5f);
+	vertices.push_back(v);
+
+
+	void* data;
+	vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+	memcpy(data, vertices.data(), (size_t) bufferInfo.size);
+	vkUnmapMemory(device, vertexBufferMemory);
+//	fillVertexBuffer(vertices);
+}
 
 //===================================================================
 //Public Methods implementations
@@ -737,7 +800,8 @@ DisplayManager::DisplayManager():
 	{}
 
 DisplayManager::~DisplayManager(){
-	int k=0;
+	vkDestroyBuffer(device, vertexBuffer, nullptr);
+	vkFreeMemory(device, vertexBufferMemory, nullptr);
 	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 	vkDestroyCommandPool(device, commandPool, nullptr);
@@ -774,4 +838,17 @@ void DisplayManager::run(){
 
 	//espera ate todas as operacoes assincronas terminarem
 	vkDeviceWaitIdle(device);
+}
+
+void DisplayManager::fillVertexBuffer(std::vector<vertex> vertices){
+	/*
+	if(vertices.size() <= 4){
+		void* data;
+		vkMapMemory(device, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
+		memcpy(data, vertices.data(), (size_t) bufferInfo.size);
+		vkUnmapMemory(device, vertexBufferMemory);
+	}else{
+		throw std::runtime_error("Too many vertices at once");
+	}
+	*/
 }

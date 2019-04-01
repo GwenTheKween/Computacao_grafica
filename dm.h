@@ -1,6 +1,8 @@
 #ifndef DISPLAY_MANAGER
 #define DISPLAY_MANAGER
+
 #define DEBUG
+#define MAX_VERTICES 8
 
 //standard libraries
 #include <iostream>
@@ -13,9 +15,7 @@
 #include <fstream>
 #include <cstring>
 
-//graphic libraries
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "vertex.h"
 
 class DisplayManager{
 private:
@@ -42,6 +42,8 @@ private:
 	std::vector<VkCommandBuffer> commandBuffers;
 	VkSemaphore imageAvailableSemaphore;
 	VkSemaphore renderFinishedSemaphore;
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
 
 	//General Purpose Members
 	uint32_t width, height;
@@ -59,6 +61,7 @@ private:
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createCommandPool();
+	void createVertexBuffers();
 	void createCommandBuffers();
 	void createSemaphores();
 
@@ -72,6 +75,8 @@ public:
 
 	void init(int = 800, int = 600);
 	void run();
+
+	void fillVertexBuffer(std::vector<vertex>);
 };
 
 #endif
