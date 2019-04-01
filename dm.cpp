@@ -23,6 +23,15 @@ const std::vector<const char*> deviceExtensions{
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+#ifdef DEBUG
+	const std::vector<const char*> validationLayers = {
+		"VK_LAYER_LUNARG_standard_validation"
+	};
+	const int validationCount = 1;
+#else
+	const int validationCount = 0;
+#endif
+
 //check that the swap chain (image buffer holder) is present in the card
 struct swapChainSupportDetails{
 	VkSurfaceCapabilitiesKHR capabilities;
@@ -177,7 +186,7 @@ VkShaderModule createShaderModule(const std::vector<char>& code, VkDevice device
 }
 
 //===================================================================
-//Private Methods implementations
+//Private setup Methods implementations
 
 void DisplayManager::initWindow(){
 	//initiates glfw with correct parameters
@@ -212,6 +221,8 @@ void DisplayManager::initVulkan(){
 	createCommandPool();
 
 	createCommandBuffers();
+
+	createSemaphores();
 }
 
 void DisplayManager::createInstance(){
@@ -236,7 +247,10 @@ void DisplayManager::createInstance(){
 
 	createInfo.enabledExtensionCount = glfwExtensionCount;
 	createInfo.ppEnabledExtensionNames = glfwExtensions;
-	createInfo.enabledLayerCount = 0;
+	createInfo.enabledLayerCount = validationCount;
+	if(validationCount){
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
 
 	if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create Vulkan Instance");
@@ -271,18 +285,20 @@ void DisplayManager::pickPhysicalDevice(){
 }
 
 void DisplayManager::createLogicalDevice(){
-	float queuePriorities;
+	float queuePriorities = 1.0f;
 	//Informatio to create all necessary queues
 	queueFamilyIndices ind = findQueueFamilies(physDevice,surface);
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
+	//armazena apenas os indices unicos de filas, caso a fila grafica e de apresentacao sejam a mesma
 	std::set<uint32_t> uniqueQueues = {ind.graphicsFamily.value(), ind.presentFamily.value()};
 
-	for(std::set<uint32_t>::iterator it=uniqueQueues.begin(); it != uniqueQueues.end(); it++){
+	//for(std::set<uint32_t>::iterator it=uniqueQueues.begin(); it != uniqueQueues.end(); it++){
+	for(uint32_t queueFam : uniqueQueues){
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = *it;
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFam;
 		queueCreateInfo.queueCount = 1;
-		queuePriorities = 1.0f;
 		queueCreateInfo.pQueuePriorities = &queuePriorities;
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
@@ -304,6 +320,8 @@ void DisplayManager::createLogicalDevice(){
 	//extension information
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+	createInfo.enabledLayerCount = 0;
 
 	//Actual creation of the logical device
 	if(vkCreateDevice(physDevice, &createInfo, nullptr, &device) != VK_SUCCESS){
@@ -366,7 +384,7 @@ void DisplayManager::createImageViews(){
 	swapchainImageViews.resize(swapchainImages.size());
 	for(size_t i=0; i<swapchainImageViews.size(); i++){
 		VkImageViewCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = swapchainImages[i];
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		createInfo.format = swapchainImageFormat;
@@ -462,7 +480,7 @@ void DisplayManager::createGraphicsPipeline(){
 	//topology used specifically for the tutorial
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	//actual topology that will be used for the project
-	//inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	//inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	//creates a default viewport
@@ -549,6 +567,7 @@ void DisplayManager::createGraphicsPipeline(){
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = &viewportState;
 	pipelineInfo.pRasterizationState = &rasterizer;
+	pipelineInfo.pMultisampleState = &multisampling;
 	pipelineInfo.pColorBlendState = &colorBlend;
 	pipelineInfo.layout = pipelineLayout;
 	pipelineInfo.renderPass = renderPass;
@@ -645,6 +664,71 @@ void DisplayManager::createCommandBuffers(){
 	}
 }
 
+void DisplayManager::createSemaphores(){
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	if(	(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS) ||
+		(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS)) {
+		throw std::runtime_error("failed to create semaphores");
+	}
+}
+
+//===================================================================
+//Private Drawing methods
+
+void DisplayManager::drawFrame(){
+
+	//the first step in drawing an image is acquiring it from the swapchain
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR(
+			device, //qual dispositivo logico esta sendo usado para renderizar a imagem
+			swapchain, //Qual swapchain contem a imagem desejada
+			std::numeric_limits<uint32_t>::max(), //tempo, em segundos, ate timeout
+			imageAvailableSemaphore, //semaforo usado para sincronizar o programa
+			VK_NULL_HANDLE, //cerca usada para sincronizar
+			&imageIndex //onde sera retornada a imagem
+		);
+
+	//preparacao para sumbeter comandos
+	VkSubmitInfo submitInfo = {};
+	VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+	VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	//aqui eh indicado em qual imagem estamos trabalhando, ja que o cada commandBuffer eh unico para uma imagem
+	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	//Processo de submeter o comando para o buffer, trabalhando na imagem adquirida
+	if(vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS){
+		throw std::runtime_error("unable to submit command");
+	}
+
+	//A ultima parte eh resubmeter a imagem para a swapchain
+	VkPresentInfoKHR presentInfo = {};
+	VkSwapchainKHR swapchains[] = {swapchain};
+
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapchains;
+	presentInfo.pImageIndices = &imageIndex;
+
+	//submissao do pedido para apresentar a nova imagem
+	vkQueuePresentKHR(presentQueue, &presentInfo);
+	//espera terminar de renderizar o frame
+	vkQueueWaitIdle(presentQueue);
+}
+
+
 //===================================================================
 //Public Methods implementations
 
@@ -653,6 +737,9 @@ DisplayManager::DisplayManager():
 	{}
 
 DisplayManager::~DisplayManager(){
+	int k=0;
+	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	for(size_t i = 0; i< swapchainFrambuffer.size(); i++){
 		vkDestroyFramebuffer(device, swapchainFrambuffer[i], nullptr);
@@ -682,5 +769,9 @@ void DisplayManager::init(int wid,int hei){
 void DisplayManager::run(){
 	while(!glfwWindowShouldClose(window)){
 		glfwPollEvents();
+		drawFrame();
 	}
+
+	//espera ate todas as operacoes assincronas terminarem
+	vkDeviceWaitIdle(device);
 }

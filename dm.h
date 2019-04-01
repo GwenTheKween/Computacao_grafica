@@ -1,5 +1,6 @@
 #ifndef DISPLAY_MANAGER
 #define DISPLAY_MANAGER
+#define DEBUG
 
 //standard libraries
 #include <iostream>
@@ -10,6 +11,7 @@
 #include <set>
 #include <string>
 #include <fstream>
+#include <cstring>
 
 //graphic libraries
 #define GLFW_INCLUDE_VULKAN
@@ -38,11 +40,13 @@ private:
 	std::vector<VkFramebuffer> swapchainFrambuffer;
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
 
 	//General Purpose Members
 	uint32_t width, height;
 
-	//private methods
+	//private setup methods
 	void initWindow();
 	void initVulkan();
 	void createInstance();
@@ -56,6 +60,10 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffers();
+	void createSemaphores();
+
+	//private drawing methods
+	void drawFrame();
 
 
 public:

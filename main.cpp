@@ -2,7 +2,7 @@
 
 int main(){
 	DisplayManager dm;
-	dm.init();
+	dm.init(800,600);
 	dm.run();
 	return 0;
 }
