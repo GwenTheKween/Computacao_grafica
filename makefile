@@ -10,6 +10,9 @@ all: $(NOME)
 $(NOME): $(OFILES)
 	$(COMP) $(OFILES) $(LINKFLAGS) $(NOME)
 
+%.o:%.cpp %.h
+	$(COMP) $(COMPFLAG) $(FOLDER)$< -o $@
+
 %.o:%.cpp
 	$(COMP) $(COMPFLAG) $(FOLDER)$< -o $@
 

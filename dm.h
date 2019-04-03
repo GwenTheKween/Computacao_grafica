@@ -1,8 +1,8 @@
 #ifndef DISPLAY_MANAGER
 #define DISPLAY_MANAGER
 
-#define DEBUG
-#define MAX_VERTICES 8
+//#define DEBUG
+#define MAX_VERTICES 4
 
 //standard libraries
 #include <iostream>
@@ -44,6 +44,8 @@ private:
 	VkSemaphore renderFinishedSemaphore;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
 
 	//General Purpose Members
 	uint32_t width, height;
@@ -62,12 +64,14 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createVertexBuffers();
+	void createIndexBuffer();
 	void createCommandBuffers();
 	void createSemaphores();
+	void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer&, VkDeviceMemory&);
 
 	//private drawing methods
 	void drawFrame();
-
+	void copyBuffer(VkBuffer, VkBuffer, VkDeviceSize);
 
 public:
 	DisplayManager();
