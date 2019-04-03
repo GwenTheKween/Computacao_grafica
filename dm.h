@@ -10,10 +10,9 @@
 #include <exception>
 #include <cstring>
 #include <string>
+#include <vector>
 
-//bibliotecas graficas
-#include "include/glad/glad.h"
-#include <GLFW/glfw3.h>
+#include "VAO.h"
 
 class DisplayManager{
 private:
@@ -23,13 +22,10 @@ private:
 	unsigned int fragmentShader;
 	unsigned int shaderProgram;
 
-	unsigned int VBO;//verter buffer object
-	unsigned int VAO;//vertex array object
-	unsigned int EBO;//Element buffer object
-
-
 	//General Purpose Members
 	uint32_t width, height;
+
+	std::vector<VAO_INFO> VAO_array;
 
 public:
 	DisplayManager();
@@ -38,18 +34,10 @@ public:
 	void init(int = 800, int = 600, const char* = nullptr);
 	void run();
 
-};
+	void register_VAO(VAO_INFO);
 
-static float vertices[]={
-	-0.5f, -0.5f,0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.5f, 0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f
-};
-
-static unsigned int indices[] = {
-	0, 1, 2,
-	2, 3, 0
+	GLFWwindow* getWindow(){return window;}
+	unsigned int getShader(){return shaderProgram;}
 };
 
 #endif

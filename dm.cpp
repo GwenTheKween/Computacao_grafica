@@ -83,9 +83,6 @@ DisplayManager::DisplayManager():
 }
 
 DisplayManager::~DisplayManager(){
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1,&VBO);
-	glDeleteBuffers(1,&EBO);
 	glfwTerminate();
 }
 
@@ -135,23 +132,6 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	//bind de Buffers
-	glGenVertexArrays(1,&VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1,&EBO);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*) 0);
-	glEnableVertexAttribArray(0);
-
-	glBindVertexArray(0);
 }
 
 void DisplayManager::run(){
@@ -162,11 +142,18 @@ void DisplayManager::run(){
 		//renderizacao
 		clearWindow(window);
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_LINE_LOOP,6,GL_UNSIGNED_INT,0);
+		for(int i=0;i<VAO_array.size();i++){
+			glBindVertexArray(VAO_array[i].getVAO());
+			glDrawArrays(GL_LINE_LOOP,0,4);
+//			glDrawElements(VAO_array[i].getDrawStyle(),VAO_array[i].getIndexCount(),GL_UNSIGNED_INT,0);
+		}
 
 		//troca de buffers e busca por callbacks necessarios
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+}
+
+void DisplayManager::register_VAO(VAO_INFO info){
+	VAO_array.push_back(info);
 }
