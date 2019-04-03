@@ -2,7 +2,11 @@
 
 int main(){
 	DisplayManager dm;
-	dm.init(800,600);
-	dm.run();
+	try{
+		dm.init(800,600);
+		dm.run();
+	}catch (std::exception& e){
+		std::cerr << e.what() <<std::endl;
+	}
 	return 0;
 }
