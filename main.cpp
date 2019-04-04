@@ -4,9 +4,25 @@
 #define HEIGHT 600
 
 DisplayManager dm;
+std::vector<botao> b;
 
 void nada(){
+	printf("foi\n");
 	return;
+}
+
+void mouseButton(GLFWwindow* w, int button, int action, int mods){
+	if(GLFW_MOUSE_BUTTON_LEFT == button && action == GLFW_PRESS){
+		double x,y;
+		glfwGetCursorPos(w, &x, &y);
+		printf("%lf\t%lf\n",x,y);
+		for(int i=0;i<b.size();i++){
+			if(b[i].inside(x,y)){
+				b[i].press();
+				break;
+			}
+		}
+	}
 }
 
 botao cria_botao_sair(){
@@ -44,15 +60,16 @@ botao cria_botao_2(){
 int main(){
 	float vertices[8];
 	unsigned int indices[] = {0, 1, 2, 2, 3, 0};
-	botao b[2];
 	try{
 		dm.init(WIDTH,HEIGHT);
 
-		b[0] = cria_botao_sair();
-		b[1] = cria_botao_2();
+		b.push_back(cria_botao_sair());
+		b.push_back(cria_botao_2());
 
 		dm.register_VAO(b[0].getID());
 		dm.register_VAO(b[1].getID());
+
+		dm.registerMouseButtonCallback(mouseButton);
 
 		dm.run();
 	}catch (std::exception& e){
