@@ -35,6 +35,7 @@ public:
 	void run();
 
 	void register_VAO(VAO_INFO);
+	void deregister_VAO(int);
 
 	GLFWwindow* getWindow(){return window;}
 	unsigned int getShader(){return shaderProgram;}

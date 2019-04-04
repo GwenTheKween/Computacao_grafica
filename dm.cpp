@@ -83,6 +83,9 @@ DisplayManager::DisplayManager():
 }
 
 DisplayManager::~DisplayManager(){
+	while(!VAO_array.empty()){
+		deregister_VAO(VAO_array[0].VAO_ID);
+	}
 	glfwTerminate();
 }
 
@@ -143,9 +146,9 @@ void DisplayManager::run(){
 		clearWindow(window);
 		glUseProgram(shaderProgram);
 		for(int i=0;i<VAO_array.size();i++){
-			glBindVertexArray(VAO_array[i].getVAO());
-			glDrawArrays(GL_LINE_LOOP,0,4);
-//			glDrawElements(VAO_array[i].getDrawStyle(),VAO_array[i].getIndexCount(),GL_UNSIGNED_INT,0);
+			glBindVertexArray(VAO_array[i].VAO_ID);
+//			glDrawArrays(GL_LINE_LOOP,0,4);
+			glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
 		}
 
 		//troca de buffers e busca por callbacks necessarios
@@ -156,4 +159,20 @@ void DisplayManager::run(){
 
 void DisplayManager::register_VAO(VAO_INFO info){
 	VAO_array.push_back(info);
+}
+
+void DisplayManager::deregister_VAO(int VAO_ID){
+	int i;
+	//eh passado o VAO_ID, ao inves do indice a ser desalocado, para que outros objetos so precisem saber seu VAO_ID, nao precisem saber o indice
+	//do vector, e possam se des-registrar da fila de desenho
+	for(i=0;i<VAO_array.size();i++){
+		if(VAO_array[i].VAO_ID == VAO_ID){
+			break;
+		}
+	}
+	if(i == VAO_array.size()){
+		return; //ID passado nao foi encontrado, ou nao esta ativo
+	}
+	VAO_array[i].unset();
+	VAO_array.erase(VAO_array.begin()+i);
 }
