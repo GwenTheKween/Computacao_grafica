@@ -1,10 +1,10 @@
 #include "dm.h"
 
 float vertices[]={
-	-0.5f, -0.5f,0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.5f, 0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f
+	-200,-150,
+	200, -150,
+	200,150,
+	-200,150
 };
 
 unsigned int indices[] = {
@@ -20,7 +20,7 @@ int main(){
 
 		VAO_INFO teste;
 
-		teste.set(vertices, indices, 12, 6, GL_LINE_LOOP);
+		teste.set(vertices, indices, 4, 2, 6, GL_TRIANGLES);
 
 		dm.register_VAO(teste);
 
