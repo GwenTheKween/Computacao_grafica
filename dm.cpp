@@ -3,10 +3,6 @@
 //===============================================================================================================================================
 //implementacao de funcoes auxiliares para a biblioteca
 
-void framebufferSizeCallback(GLFWwindow* window, int w, int h){
-	glViewport(0,0,w,h);
-}
-
 //funcao que processa teclas sendo apertadas
 void processInput(GLFWwindow* window){
 	//se apertar ESC, fecha a janela
@@ -72,14 +68,14 @@ void compileShader(unsigned int shader, const char* filename){
 //Implementacao de metodos publicos
 
 
-DisplayManager::DisplayManager():
-	width(-1),
-	height(-1)
-{
+DisplayManager::DisplayManager(){
+	dimensions[0]=-1;
+	dimensions[1]=-1;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, 0);
 }
 
 DisplayManager::~DisplayManager(){
@@ -90,14 +86,14 @@ DisplayManager::~DisplayManager(){
 }
 
 void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
-	width = WIDTH;
-	height = HEIGHT;
+	dimensions[0] = WIDTH;
+	dimensions[1] = HEIGHT;
 
 	//inicializacao da janela, onde tudo vai ser renderizado
 	if(title == nullptr){
-		window = glfwCreateWindow(width, height, "projeto 1", nullptr,nullptr);
+		window = glfwCreateWindow(dimensions[0], dimensions[1], "projeto 1", nullptr,nullptr);
 	}else{
-		window = glfwCreateWindow(width, height, title, nullptr,nullptr);
+		window = glfwCreateWindow(dimensions[0], dimensions[1], title, nullptr,nullptr);
 	}
 
 	//checagem que a janela foi inicializada
@@ -112,10 +108,7 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 	}
 
 	//inicializacao da porta de visao
-	glViewport(0,0,width, height);
-
-	//registro da funcao de mudanca de tamanho da janela
-	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+	glViewport(0,0,dimensions[0], dimensions[1]);
 
 	//compilacao de shaders
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -135,6 +128,11 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	glUseProgram(shaderProgram);
+	//armazena os valores para normalizar os vertices mais tarde
+	int windowSizeLocation = glGetUniformLocation(shaderProgram, "windowSize");
+	glUniform2i(windowSizeLocation, dimensions[0], dimensions[1]);
+
 }
 
 void DisplayManager::run(){
@@ -144,7 +142,6 @@ void DisplayManager::run(){
 
 		//renderizacao
 		clearWindow(window);
-		glUseProgram(shaderProgram);
 		for(int i=0;i<VAO_array.size();i++){
 			glBindVertexArray(VAO_array[i].VAO_ID);
 //			glDrawArrays(GL_LINE_LOOP,0,4);
@@ -176,3 +173,5 @@ void DisplayManager::deregister_VAO(int VAO_ID){
 	VAO_array[i].unset();
 	VAO_array.erase(VAO_array.begin()+i);
 }
+
+

@@ -22,8 +22,11 @@ private:
 	unsigned int fragmentShader;
 	unsigned int shaderProgram;
 
+	unsigned int VAO_window_size;
+	unsigned int VBO_window_size;
+
 	//General Purpose Members
-	uint32_t width, height;
+	int dimensions[2];// width, height
 
 	std::vector<VAO_INFO> VAO_array;
 

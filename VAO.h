@@ -15,6 +15,7 @@ struct VAO_INFO{
 	void set(float* vertices, 
 			 unsigned int* indices, 
 			 unsigned int vertexCount, 
+			 unsigned int vertexDimension, //se for 2D, multiplica a contagem de vertices por 2, se for 3D, multiplica por 3
 			 unsigned int indexCount, 
 			 unsigned int draw)
 	{
@@ -25,12 +26,12 @@ struct VAO_INFO{
 		glBindVertexArray(VAO_ID);
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
-		glBufferData(GL_ARRAY_BUFFER,vertexCount * sizeof(vertices[0]), vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,vertexCount * vertexDimension * sizeof(vertices[0]), vertices, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_ID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(indices[0]), indices, GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+		glVertexAttribPointer(0, vertexDimension, GL_FLOAT, GL_FALSE, vertexDimension*sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
 		glBindVertexArray(0);
