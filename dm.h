@@ -22,8 +22,6 @@ private:
 	unsigned int fragmentShader;
 	unsigned int shaderProgram;
 
-	unsigned int VAO_window_size;
-	unsigned int VBO_window_size;
 
 	//General Purpose Members
 	int dimensions[2];// width, height
@@ -43,6 +41,8 @@ public:
 
 	GLFWwindow* getWindow(){return window;}
 	unsigned int getShader(){return shaderProgram;}
+
+	void clearWindow(float,float,float);
 };
 
 #endif

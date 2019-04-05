@@ -11,12 +11,6 @@ void processInput(GLFWwindow* window){
 	}
 }
 
-//funcao que limpa a janela
-void clearWindow(GLFWwindow* window){
-	glClearColor(1.0f,1.0f,1.0f,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-}
-
 char* readShader(const char* filename){
 	if(filename == NULL){
 		return NULL;
@@ -86,72 +80,70 @@ glfwTerminate();
 }
 
 void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
-dimensions[0] = WIDTH;
-dimensions[1] = HEIGHT;
+	dimensions[0] = WIDTH;
+	dimensions[1] = HEIGHT;
 
-//inicializacao da janela, onde tudo vai ser renderizado
-if(title == nullptr){
-	window = glfwCreateWindow(dimensions[0], dimensions[1], "projeto 1", nullptr,nullptr);
-}else{
-	window = glfwCreateWindow(dimensions[0], dimensions[1], title, nullptr,nullptr);
-}
+	//inicializacao da janela, onde tudo vai ser renderizado
+	if(title == nullptr){
+		window = glfwCreateWindow(dimensions[0], dimensions[1], "projeto 1", nullptr,nullptr);
+	}else{
+		window = glfwCreateWindow(dimensions[0], dimensions[1], title, nullptr,nullptr);
+	}
 
-//checagem que a janela foi inicializada
-if(window == nullptr){
-	throw std::runtime_error("unable to create glfw window");
-}
-glfwMakeContextCurrent(window);
+	//checagem que a janela foi inicializada
+	if(window == nullptr){
+		throw std::runtime_error("unable to create glfw window");
+	}
+	glfwMakeContextCurrent(window);
 
-//checagem que a biblioteca auxiliar foi carregada corretamente
-if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-	throw std::runtime_error("failed to initialize GLAD");
-}
+	//checagem que a biblioteca auxiliar foi carregada corretamente
+	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+		throw std::runtime_error("failed to initialize GLAD");
+	}
 
-//inicializacao da porta de visao
-glViewport(0,0,dimensions[0], dimensions[1]);
+	//inicializacao da porta de visao
+	glViewport(0,0,dimensions[0], dimensions[1]);
 
-//compilacao de shaders
-vertexShader = glCreateShader(GL_VERTEX_SHADER);
-compileShader(vertexShader, "shaders/shader.vert");
+	//compilacao de shaders
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	compileShader(vertexShader, "shaders/shader.vert");
 
-fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-compileShader(fragmentShader, "shaders/shader.frag");
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	compileShader(fragmentShader, "shaders/shader.frag");
 
 
-shaderProgram = glCreateProgram();
-glAttachShader(shaderProgram, vertexShader);
-glAttachShader(shaderProgram, fragmentShader);
-glLinkProgram(shaderProgram);
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
 
-//free the shader memory
+	//free the shader memory
 
-glDeleteShader(vertexShader);
-glDeleteShader(fragmentShader);
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 
-glUseProgram(shaderProgram);
-//armazena os valores para normalizar os vertices mais tarde
-int windowSizeLocation = glGetUniformLocation(shaderProgram, "windowSize");
-glUniform2i(windowSizeLocation, dimensions[0], dimensions[1]);
+	glUseProgram(shaderProgram);
+	//armazena os valores para normalizar os vertices mais tarde
+	int windowSizeLocation = glGetUniformLocation(shaderProgram, "windowSize");
+	glUniform2i(windowSizeLocation, dimensions[0], dimensions[1]);
 
 }
 
 void DisplayManager::run(){
-while(!glfwWindowShouldClose(window)){
-	//processamento de inputs
-	processInput(window);
+	while(!glfwWindowShouldClose(window)){
+		//processamento de inputs
+		processInput(window);
 
-	//renderizacao
-	clearWindow(window);
-	for(int i=0;i<VAO_array.size();i++){
-		glBindVertexArray(VAO_array[i].VAO_ID);
-//			glDrawArrays(GL_LINE_LOOP,0,4);
-		glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
+		//renderizacao
+		for(int i=0;i<VAO_array.size();i++){
+			glBindVertexArray(VAO_array[i].VAO_ID);
+			glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
+		}
+
+		//troca de buffers e busca por callbacks necessarios
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
-
-	//troca de buffers e busca por callbacks necessarios
-	glfwSwapBuffers(window);
-	glfwPollEvents();
-}
 }
 
 void DisplayManager::register_VAO(VAO_INFO info){
@@ -177,4 +169,12 @@ void DisplayManager::deregister_VAO(int VAO_ID){
 
 void DisplayManager::registerMouseButtonCallback(void (*mouseFunc)(GLFWwindow*,int,int,int)){
 	glfwSetMouseButtonCallback(window,mouseFunc);
+}
+
+//funcao que limpa a janela
+void DisplayManager::clearWindow(float r, float g, float b){
+	glClearColor(r,g,b,1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glfwSwapBuffers(window);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
