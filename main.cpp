@@ -5,12 +5,30 @@
 
 DisplayManager dm;
 std::vector<botao> b;
+std::vector<float> input_coordinates;
+VAO_INFO poly;
 
 void backBlue(){
+
+	std::vector<float> polygon;
+	//CHAMADA DE FUNCAO DO LUIS
+	//poligon = PoliFill(input_coordinates);
+
+	//exemplo para teste:
+	polygon = input_coordinates;
+
+	poly.set(input_coordinates,2,GL_LINE_LOOP);
+
+	dm.register_VAO(poly);
+
 	dm.clearWindow(0.0f,0.0f,1.0f);
 }
 
 void backGreen(){
+	input_coordinates.clear();
+
+	dm.deregister_VAO(poly.VAO_ID);
+
 	dm.clearWindow(0.0f,1.0f,0.0f);
 }
 
@@ -21,12 +39,18 @@ void nada(){
 void mouseButton(GLFWwindow* w, int button, int action, int mods){
 	if(GLFW_MOUSE_BUTTON_LEFT == button && action == GLFW_PRESS){
 		double x,y;
+		int i;
 		glfwGetCursorPos(w, &x, &y);
-		for(int i=0;i<b.size();i++){
+		for(i=0;i<b.size();i++){
 			if(b[i].inside(x,y)){
 				b[i].press();
 				break;
 			}
+		}
+		if(i == b.size()){
+			input_coordinates.push_back((float)x);
+			input_coordinates.push_back((float)y);
+			printf("%lf\t%lf\n",x,y);
 		}
 	}
 }
@@ -56,7 +80,7 @@ botao criaBotaoLimparTela(){
 	vertices[14] = 150;
 	vertices[15] = 470;
 
-	botao b(vertices,indices, 8, 12, backBlue);
+	botao b(vertices,indices, 8, 12, backGreen);
 
 	/*
 	//seta de rewind
@@ -101,7 +125,7 @@ botao criaBotaoTerminar(){
 	vertices[4] = 665;
 	vertices[5] = 475;
 
-	botao b(vertices,indices, 3, 3, backGreen);
+	botao b(vertices,indices, 3, 3, backBlue);
 
 	return b;
 }

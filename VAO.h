@@ -11,6 +11,7 @@ struct VAO_INFO{
 	unsigned int EBO_ID;
 	unsigned int drawStyle;
 	unsigned int indexCount;
+	bool uses_index;
 
 	void set(float* vertices, 
 			 unsigned int* indices, 
@@ -38,12 +39,36 @@ struct VAO_INFO{
 
 		drawStyle = draw;
 		this -> indexCount = indexCount;
+		uses_index = true;
+	}
+
+	void set(std::vector<float> vertices,
+			 unsigned int vertexDimension,
+			 unsigned int draw)
+	{
+		glGenVertexArrays(1, &VAO_ID);
+		glGenBuffers(1, &VBO_ID);
+		EBO_ID = 0;
+
+		glBindVertexArray(VAO_ID);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices[0]), vertices.data(), GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, vertexDimension, GL_FLOAT, GL_FALSE, vertexDimension*sizeof(float), (void*) 0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+
+		drawStyle = draw;
+		indexCount = vertices.size()/vertexDimension;
+		uses_index = false;
 	}
 
 	void unset(){
 		glDeleteVertexArrays(1,&VAO_ID);
 		glDeleteBuffers(1,&VBO_ID);
-		glDeleteBuffers(1,&EBO_ID);
+		if(EBO_ID) glDeleteBuffers(1,&EBO_ID);
 	}
 };
 

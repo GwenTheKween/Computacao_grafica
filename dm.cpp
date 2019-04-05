@@ -137,7 +137,11 @@ void DisplayManager::run(){
 		//renderizacao
 		for(int i=0;i<VAO_array.size();i++){
 			glBindVertexArray(VAO_array[i].VAO_ID);
-			glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
+			if(VAO_array[i].uses_index){
+				glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
+			}else{
+				glDrawArrays(VAO_array[i].drawStyle, 0, VAO_array[i].indexCount);
+			}
 		}
 
 		//troca de buffers e busca por callbacks necessarios
