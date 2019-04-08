@@ -8,9 +8,12 @@ void botao::set(
 		unsigned int* index,
 		unsigned int posCount,
 		unsigned int indexCount,
+		float* Color,
 		void (*func)(void))
 {
-	float color[3] = {1.0f,1.0f,1.0f};
+	color[0] = Color[0];
+	color[1] = Color[1];
+	color[2] = Color[2];
 	position.resize(posCount*2);
 	for(int i=0;i<posCount*2;i++){
 		position[i] = pos[i];
@@ -28,12 +31,13 @@ bool botao::inside(int x, int y){
 
 void botao::disable(){
 	active = false;
-	ID.setColor(0.0f,0.0f,0.0f);
+	float disColor[]={0.0f,0.0f,0.0f};
+	ID.setColor(disColor);
 }
 
 void botao::enable(){
 	active = true;
-	ID.setColor(1.0f,1.0f,1.0f);
+	ID.setColor(color);
 }
 
 float botao::getMinY(){
@@ -88,16 +92,28 @@ float botao::getMaxX(){
 	return maxX;
 }
 
+float botao::getRed(){
+	return color[0];
+}
+
+float botao::getGreen(){
+	return color[1];
+}
+
+float botao::getBlue(){
+	return color[2];
+}
+
 //======================================================================================================================
 //declaracao de construtores
-botao::botao(float* pos, unsigned int* ind, unsigned int posCount, unsigned int indCount, void (*func)(void)):
+botao::botao(float* pos, unsigned int* ind, unsigned int posCount, unsigned int indCount, float* Color, void (*func)(void)):
 	minX(-1),
 	maxX(-1),
 	minY(-1),
 	maxY(-1),
 	active(true)
 {
-	set(pos,ind,posCount,indCount,func);
+	set(pos,ind,posCount,indCount,Color,func);
 }
 
 botao::botao():

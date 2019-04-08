@@ -3,6 +3,18 @@
 #define WIDTH 800
 #define HEIGHT 600
 
+//informacoes sobre botoes de cor
+#define COLOR_BUTTON_SIZE 20
+#define COLOR_BUTTON_SPACE 6
+#define COLOR_BUTTON_BEGIN_X (WIDTH/2 - 2*COLOR_BUTTON_SIZE - 3*COLOR_BUTTON_SPACE/2)
+#define COLOR_BUTTON_BEGIN_Y 470 //escolhido ao acaso
+
+
+//ordem dos botoes no vector: {cores,terminar,limpar}
+#define COLOR_BUTTON_COUNT 16
+#define FINISH_BUTTON_INDEX (COLOR_BUTTON_COUNT)
+#define CLEAR_BUTTON_INDEX (COLOR_BUTTON_COUNT + 1 )
+
 //declaracao de variaveis globais
 //gerenciador da parte grafica:
 DisplayManager dm;
@@ -19,10 +31,36 @@ float color[3];
 //se o programa esta aceitando input para vertices do poligono
 bool acceptInput;
 
-void finishPolygon(){
+//qual botao foi apertado, -1 se nenhum botao foi apertado
+int currButtonPress;
 
+//Vertice com as cores dos botoes:
+float buttonColor[18][3]={
+	{0.1f,0.1f,0.1f},
+	{0.0f,0.0f,0.25f},
+	{0.0f,0.25f,0.0f},
+	{0.0f,0.25f,0.25f},
+	{0.25f,0.0f,0.0f},
+	{0.25f,0.0f,0.25f},
+	{0.25f,0.25f,0.0f},
+	{0.25f,0.25f,0.25f},
+	{0.5f,0.5f,0.5f},
+	{0.5f,0.5f,0.75f},
+	{0.5f,0.75f,0.5f},
+	{0.5f,0.75f,0.75f},
+	{0.75f,0.5f,0.5f},
+	{0.75f,0.5f,0.75f},
+	{0.75f,0.75f,0.5f},
+	{0.75f,0.75f,0.75f},
+	{1.0f,1.0f,1.0f},
+	{1.0f,1.0f,1.0f}
+};
+
+//==============================================================================================================================================
+//Funcoes usadas pelos botoes
+
+void finishPolygon(){ //funcao do botao de termino do 
 	std::vector<float> polygon;
-	float color[]={1.0f,1.0f,1.0f};
 	//CHAMADA DE FUNCAO DO LUIS
 	//poligon = PoliFill(input_coordinates);
 
@@ -30,16 +68,19 @@ void finishPolygon(){
 	//exemplo para teste:
 	polygon = input_coordinates;
 
-	poly.start(input_coordinates,2,GL_LINE_LOOP,GL_STATIC_DRAW,color);
+	poly.start(input_coordinates,2,GL_LINE_LOOP,GL_STATIC_DRAW,input_draw.color);
 
 	dm.register_VAO(poly);
 
 	//dm.setClearColor(0.8f,0.0f,0.0f);
 	acceptInput = false;
 
-	//o indice do botao que termina o poligono eh 1
-	b[1].disable();
-	dm.update_VAO(b[1].getID());
+	for(int i=0; i<= CLEAR_BUTTON_INDEX; i++){
+		if(i != FINISH_BUTTON_INDEX){
+			b[i].disable();
+			dm.update_VAO(b[i].getID());
+		}
+	}
 }
 
 void clearScreen(){
@@ -51,10 +92,21 @@ void clearScreen(){
 	//dm.setClearColor(0.0f,0.8f,0.0f);
 	acceptInput = true;
 
-	//o indice do botao que termina o poligono eh 1
-	b[1].enable();
-	dm.update_VAO(b[1].getID());
+	for(int i=0; i<= CLEAR_BUTTON_INDEX; i++){
+		if(i != FINISH_BUTTON_INDEX){
+			b[i].enable();
+			dm.update_VAO(b[i].getID());
+		}
+	}
 }
+
+void setColor(){
+	input_draw.setColor(buttonColor[currButtonPress]);
+	dm.update_VAO(input_draw);
+}
+
+//==============================================================================================================================================
+//funcoes usadas como callback
 
 void mouseButton(GLFWwindow* w, int button, int action, int mods){
 	if(GLFW_MOUSE_BUTTON_LEFT == button && action == GLFW_PRESS){
@@ -63,11 +115,13 @@ void mouseButton(GLFWwindow* w, int button, int action, int mods){
 		glfwGetCursorPos(w, &x, &y);
 		for(i=0;i<b.size();i++){
 			if(b[i].inside(x,y)){
+				currButtonPress = i;
 				b[i].press();
 				break;
 			}
 		}
 		if(i == b.size() && acceptInput){
+			currButtonPress = -1;
 			input_coordinates.push_back((float)x);
 			input_coordinates.push_back((float)y);
 			if(input_coordinates.size() == 2){ 
@@ -82,6 +136,9 @@ void mouseButton(GLFWwindow* w, int button, int action, int mods){
 		}
 	}
 }
+
+//==============================================================================================================================================
+//criacao de botoes
 
 botao criaBotaoLimparTela(){
 	//lata de lixo
@@ -108,7 +165,7 @@ botao criaBotaoLimparTela(){
 	vertices[14] = 150;
 	vertices[15] = 470;
 
-	botao b(vertices,indices, 8, 12, clearScreen);
+	botao b(vertices,indices, 8, 12, buttonColor[CLEAR_BUTTON_INDEX], clearScreen);
 
 	return b;
 }
@@ -126,10 +183,50 @@ botao criaBotaoTerminar(){
 	vertices[4] = 665;
 	vertices[5] = 475;
 
-	botao b(vertices,indices, 3, 3, finishPolygon);
+	botao b(vertices,indices, 3, 3, buttonColor[FINISH_BUTTON_INDEX],finishPolygon);
 
 	return b;
 }
+
+/*
+	Os botoes de cor estao alocados em uma matrix 4x4, e os numeros indicam qual a posicao do botao da seguinte maneira:
+
+	1	2	3	4
+	5	6	7	8
+	9	a	b	c
+	d	e	f	g
+*/
+
+void nada(){}
+
+botao criaBotaoCor(int numero){
+	float x,y;
+
+	x = COLOR_BUTTON_BEGIN_X + (numero % 4) * (COLOR_BUTTON_SIZE + COLOR_BUTTON_SPACE);
+	y = COLOR_BUTTON_BEGIN_Y + (numero / 4) * (COLOR_BUTTON_SIZE + COLOR_BUTTON_SPACE);
+
+	float vertices[8];
+	unsigned int indices[6] = {0,1,2,2,3,0};
+
+	vertices[0] = x;
+	vertices[1] = y;
+
+	vertices[2] = x + COLOR_BUTTON_SIZE;
+	vertices[3] = y;
+
+	vertices[4] = x + COLOR_BUTTON_SIZE;
+	vertices[5] = y + COLOR_BUTTON_SIZE;
+
+	vertices[6] = x;
+	vertices[7] = y + COLOR_BUTTON_SIZE;
+
+	botao b(vertices, indices, 4, 6, buttonColor[numero], setColor);
+
+	return b;
+}
+
+//==============================================================================================================================================
+//Funcao Main
 
 int main(){
 	color[0] = 1.0f;
@@ -139,8 +236,17 @@ int main(){
 	try{
 		dm.init(WIDTH,HEIGHT);
 
+		for(int i=0;i<COLOR_BUTTON_COUNT; i++){
+			b.push_back(criaBotaoCor(i));
+		}
 		b.push_back(criaBotaoLimparTela());
 		b.push_back(criaBotaoTerminar());
+//		printf("%d\n",b[1].getID().VAO_ID);
+
+//		printf("%d\n",b[1].getID().VAO_ID);
+
+//		printf("%d\n",b[1].getID().VAO_ID);
+
 //		printf("%d\n",b[1].getID().VAO_ID);
 
 		for(int i=0;i<b.size();i++)

@@ -9,13 +9,14 @@ private:
 	void (*action)(void);
 	float maxX,minX,maxY,minY;
 	bool active;
+	float color[3];
 
 public:
 	botao();
-	botao(float*,unsigned int*, unsigned int, unsigned int, void (*func)(void));
+	botao(float*,unsigned int*, unsigned int, unsigned int, float*, void (*func)(void));
 	~botao();
 
-	void set(float*,unsigned int*, unsigned int, unsigned int, void(*func)(void));
+	void set(float*,unsigned int*, unsigned int, unsigned int, float*, void(*func)(void));
 
 	void press(){
 		if(active) action();
@@ -31,6 +32,10 @@ public:
 	float getMinX();
 	float getMaxX();
 	float getMaxY();
+
+	float getRed();
+	float getGreen();
+	float getBlue();
 };
 
 #endif
