@@ -34,11 +34,12 @@ void finishPolygon(){
 
 	dm.register_VAO(poly);
 
-	dm.setClearColor(0.8f,0.0f,0.0f);
+	//dm.setClearColor(0.8f,0.0f,0.0f);
 	acceptInput = false;
 
 	//o indice do botao que termina o poligono eh 1
 	b[1].disable();
+	dm.update_VAO(b[1].getID());
 }
 
 void clearScreen(){
@@ -47,11 +48,12 @@ void clearScreen(){
 	dm.deregister_VAO(poly);
 	dm.deregister_VAO(input_draw);
 
-	dm.setClearColor(0.0f,0.8f,0.0f);
+	//dm.setClearColor(0.0f,0.8f,0.0f);
 	acceptInput = true;
 
 	//o indice do botao que termina o poligono eh 1
 	b[1].enable();
+	dm.update_VAO(b[1].getID());
 }
 
 void mouseButton(GLFWwindow* w, int button, int action, int mods){

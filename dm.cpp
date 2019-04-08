@@ -133,7 +133,7 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 }
 
 void DisplayManager::run(){
-	setClearColor(0.0f,1.0f,0.0f);
+	setClearColor(0.0f,0.0f,0.0f);
 	int colorLocation = glGetUniformLocation(shaderProgram, "color");
 	//glClear(GL_COLOR_BUFFER_BIT);
 	while(!glfwWindowShouldClose(window)){
