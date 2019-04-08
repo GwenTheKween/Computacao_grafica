@@ -36,7 +36,8 @@ public:
 	void run();
 
 	void register_VAO(VAO_INFO);
-	void deregister_VAO(int);
+	void deregister_VAO(VAO_INFO);
+	void update_VAO(VAO_INFO);
 	void registerMouseButtonCallback(void (*mouseFunc)(GLFWwindow*,int,int,int));
 
 	GLFWwindow* getWindow(){return window;}

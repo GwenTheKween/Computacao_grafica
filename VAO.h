@@ -85,6 +85,45 @@ struct VAO_INFO{
 		glDeleteBuffers(1,&VBO_ID);
 		if(EBO_ID) glDeleteBuffers(1,&EBO_ID);
 	}
+
+	void updateVertex(
+			std::vector<float> vertices,
+			unsigned int vertexDimension,
+			unsigned int memory_type)
+	{
+		if(vertices.size() > 0){
+			glBindVertexArray(VAO_ID);
+
+			glBindBuffer(GL_ARRAY_BUFFER, VBO_ID);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertices[0]), vertices.data(), memory_type);
+
+			glVertexAttribPointer(0, vertexDimension, GL_FLOAT, GL_FALSE, vertexDimension*sizeof(float), (void*) 0);
+			glEnableVertexAttribArray(0);
+
+			glBindVertexArray(0);
+		}
+		indexCount = vertices.size()/vertexDimension;
+	}
+
+	void setColor(float r, float g, float b){
+		color[0] = r;
+		color[1] = g;
+		color[2] = b;
+	}
+
+	bool operator == (const VAO_INFO other) const{
+		return other.VAO_ID == VAO_ID;
+	}
+
+	VAO_INFO operator = (const VAO_INFO other){
+		drawStyle = other.drawStyle;
+		indexCount = other.indexCount;
+		uses_index = other.uses_index;
+		color[0] = other.color[0];
+		color[1] = other.color[1];
+		color[2] = other.color[2];
+		return *this;
+	}
 };
 
 #endif

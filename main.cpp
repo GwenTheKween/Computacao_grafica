@@ -26,25 +26,32 @@ void finishPolygon(){
 	//CHAMADA DE FUNCAO DO LUIS
 	//poligon = PoliFill(input_coordinates);
 
+	dm.deregister_VAO(input_draw);
 	//exemplo para teste:
 	polygon = input_coordinates;
 
 	poly.start(input_coordinates,2,GL_LINE_LOOP,GL_STATIC_DRAW,color);
 
 	dm.register_VAO(poly);
-	dm.deregister_VAO(input_draw.VAO_ID);
 
 	dm.setClearColor(0.8f,0.0f,0.0f);
 	acceptInput = false;
+
+	//o indice do botao que termina o poligono eh 1
+	b[1].disable();
 }
 
 void clearScreen(){
 	input_coordinates.clear();
 
-	dm.deregister_VAO(poly.VAO_ID);
+	dm.deregister_VAO(poly);
+	dm.deregister_VAO(input_draw);
 
 	dm.setClearColor(0.0f,0.8f,0.0f);
 	acceptInput = true;
+
+	//o indice do botao que termina o poligono eh 1
+	b[1].enable();
 }
 
 void mouseButton(GLFWwindow* w, int button, int action, int mods){
@@ -61,14 +68,14 @@ void mouseButton(GLFWwindow* w, int button, int action, int mods){
 		if(i == b.size() && acceptInput){
 			input_coordinates.push_back((float)x);
 			input_coordinates.push_back((float)y);
-			if(input_coordinates.size() > 4){
-				//se tem mais que 2 coordenadas, o poligono estava sendo desenhado e eh necessario destruir o buffer anterior
-				dm.deregister_VAO(input_draw.VAO_ID);
-			}
-			if(input_coordinates.size() > 2){ 
+			if(input_coordinates.size() == 2){ 
 				//se tem mais que uma coordenada, aloca um buffer para desenhar o poligono
 				input_draw.start(input_coordinates, 2, GL_LINE_LOOP, GL_DYNAMIC_DRAW,color);
 				dm.register_VAO(input_draw);
+			}else if(input_coordinates.size() > 4){
+				input_draw.updateVertex(input_coordinates, 2, GL_DYNAMIC_DRAW);
+				//se tem mais que 2 coordenadas, o poligono estava sendo desenhado e eh necessario fazer update do buffer anterior
+				dm.update_VAO(input_draw);
 			}
 		}
 	}
@@ -101,33 +108,6 @@ botao criaBotaoLimparTela(){
 
 	botao b(vertices,indices, 8, 12, clearScreen);
 
-	/*
-	//seta de rewind
-	float vertices[12];
-	unsigned int indices[6]={0,1,2,3,4,5};
-
-	//primeiro triangulo
-	vertices[0] =  50;
-	vertices[1] = 525;
-
-	vertices[2] = 125;
-	vertices[3] = 575;
-
-	vertices[4] = 125;
-	vertices[5] = 475;
-
-	//segundo  triangulo
-	vertices[6] = 85;
-	vertices[7] = 525;
-
-	vertices[8] = 160;
-	vertices[9] = 575;
-
-	vertices[10] = 160;
-	vertices[11] = 475;
-
-	botao b(vertices,indices, 6,6,clearScreen);
-	*/
 	return b;
 }
 
@@ -159,6 +139,7 @@ int main(){
 
 		b.push_back(criaBotaoLimparTela());
 		b.push_back(criaBotaoTerminar());
+//		printf("%d\n",b[1].getID().VAO_ID);
 
 		for(int i=0;i<b.size();i++)
 			dm.register_VAO(b[i].getID());

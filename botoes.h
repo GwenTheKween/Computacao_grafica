@@ -8,6 +8,7 @@ private:
 	std::vector<float> position;
 	void (*action)(void);
 	float maxX,minX,maxY,minY;
+	bool active;
 
 public:
 	botao();
@@ -17,10 +18,12 @@ public:
 	void set(float*,unsigned int*, unsigned int, unsigned int, void(*func)(void));
 
 	void press(){
-		action();
+		if(active) action();
 	}
 
 	bool inside(int,int);
+	void disable();
+	void enable();
 
 	VAO_INFO getID(){return ID;}
 

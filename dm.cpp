@@ -77,9 +77,9 @@ DisplayManager::DisplayManager(){
 
 DisplayManager::~DisplayManager(){
 	while(!VAO_array.empty()){
-		deregister_VAO(VAO_array[0].VAO_ID);
+		deregister_VAO(VAO_array[0]);
 	}
-glfwTerminate();
+	glfwTerminate();
 }
 
 void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
@@ -135,6 +135,7 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 void DisplayManager::run(){
 	setClearColor(0.0f,1.0f,0.0f);
 	int colorLocation = glGetUniformLocation(shaderProgram, "color");
+	//glClear(GL_COLOR_BUFFER_BIT);
 	while(!glfwWindowShouldClose(window)){
 		//processamento de inputs
 		processInput(window);
@@ -143,6 +144,7 @@ void DisplayManager::run(){
 		//renderizacao
 		for(int i=0;i<VAO_array.size();i++){
 			glBindVertexArray(VAO_array[i].VAO_ID);
+//			printf("%d:{%f,%f,%f}\n",VAO_array[i].VAO_ID, VAO_array[i].color[0], VAO_array[i].color[1], VAO_array[i].color[2]);
 			glUniform3fv(colorLocation, 1, VAO_array[i].color);
 			if(VAO_array[i].uses_index){
 				glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
@@ -161,12 +163,12 @@ void DisplayManager::register_VAO(VAO_INFO info){
 	VAO_array.push_back(info);
 }
 
-void DisplayManager::deregister_VAO(int VAO_ID){
+void DisplayManager::deregister_VAO(VAO_INFO toRemove){
 	int i;
 	//eh passado o VAO_ID, ao inves do indice a ser desalocado, para que outros objetos so precisem saber seu VAO_ID, nao precisem saber o indice
 	//do vector, e possam se des-registrar da fila de desenho
 	for(i=0;i<VAO_array.size();i++){
-		if(VAO_array[i].VAO_ID == VAO_ID){
+		if(VAO_array[i] == toRemove){
 			break;
 		}
 	}
@@ -177,6 +179,19 @@ void DisplayManager::deregister_VAO(int VAO_ID){
 	VAO_array.erase(VAO_array.begin()+i);
 }
 
+void DisplayManager::update_VAO(VAO_INFO newVAO){
+	int i;
+	for(i = 0; i < VAO_array.size(); i++){
+		if(VAO_array[i] == newVAO){
+			//se o ID dos 2 for igual, atualiza os demais valores (cor, contagem de vertices,...)
+			VAO_array[i] = newVAO;
+			return;
+		}
+	}
+	if(i == VAO_array.size()){
+		register_VAO(newVAO);
+	}
+}
 
 void DisplayManager::registerMouseButtonCallback(void (*mouseFunc)(GLFWwindow*,int,int,int)){
 	glfwSetMouseButtonCallback(window,mouseFunc);

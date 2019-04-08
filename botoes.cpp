@@ -26,6 +26,16 @@ bool botao::inside(int x, int y){
 	return false;
 }
 
+void botao::disable(){
+	active = false;
+	ID.setColor(0.0f,0.0f,0.0f);
+}
+
+void botao::enable(){
+	active = true;
+	ID.setColor(1.0f,1.0f,1.0f);
+}
+
 float botao::getMinY(){
 	if(minY>=0) return minY;
 	else{
@@ -84,7 +94,8 @@ botao::botao(float* pos, unsigned int* ind, unsigned int posCount, unsigned int 
 	minX(-1),
 	maxX(-1),
 	minY(-1),
-	maxY(-1)
+	maxY(-1),
+	active(true)
 {
 	set(pos,ind,posCount,indCount,func);
 }
@@ -93,7 +104,8 @@ botao::botao():
 	minX(-1),
 	maxX(-1),
 	minY(-1),
-	maxY(-1)
+	maxY(-1),
+	active(true)
 {}
 
 botao::~botao(){

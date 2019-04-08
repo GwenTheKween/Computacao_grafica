@@ -1,5 +1,5 @@
 COMP = g++
-COMPFLAG = -O0 -std=c++17 -c -g
+COMPFLAG = -O3 -std=c++17 -c -g
 LINKFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
 NOME = PoliFill
 CFILES = dm.cpp main.cpp botoes.cpp
