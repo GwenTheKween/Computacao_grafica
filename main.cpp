@@ -14,22 +14,28 @@ std::vector<float> input_coordinates;
 VAO_INFO poly;
 //informacao do poligono que o ususario esta entrando
 VAO_INFO input_draw;
+//cor usada para desenhar o poligono
+float color[3];
+//se o programa esta aceitando input para vertices do poligono
+bool acceptInput;
 
 void finishPolygon(){
 
 	std::vector<float> polygon;
+	float color[]={1.0f,1.0f,1.0f};
 	//CHAMADA DE FUNCAO DO LUIS
 	//poligon = PoliFill(input_coordinates);
 
 	//exemplo para teste:
 	polygon = input_coordinates;
 
-	poly.start(input_coordinates,2,GL_LINE_LOOP);
+	poly.start(input_coordinates,2,GL_LINE_LOOP,GL_STATIC_DRAW,color);
 
 	dm.register_VAO(poly);
 	dm.deregister_VAO(input_draw.VAO_ID);
 
 	dm.setClearColor(0.8f,0.0f,0.0f);
+	acceptInput = false;
 }
 
 void clearScreen(){
@@ -38,6 +44,7 @@ void clearScreen(){
 	dm.deregister_VAO(poly.VAO_ID);
 
 	dm.setClearColor(0.0f,0.8f,0.0f);
+	acceptInput = true;
 }
 
 void mouseButton(GLFWwindow* w, int button, int action, int mods){
@@ -51,7 +58,7 @@ void mouseButton(GLFWwindow* w, int button, int action, int mods){
 				break;
 			}
 		}
-		if(i == b.size()){
+		if(i == b.size() && acceptInput){
 			input_coordinates.push_back((float)x);
 			input_coordinates.push_back((float)y);
 			if(input_coordinates.size() > 4){
@@ -60,7 +67,7 @@ void mouseButton(GLFWwindow* w, int button, int action, int mods){
 			}
 			if(input_coordinates.size() > 2){ 
 				//se tem mais que uma coordenada, aloca um buffer para desenhar o poligono
-				input_draw.start(input_coordinates, 2, GL_LINE_LOOP, GL_DYNAMIC_DRAW);
+				input_draw.start(input_coordinates, 2, GL_LINE_LOOP, GL_DYNAMIC_DRAW,color);
 				dm.register_VAO(input_draw);
 			}
 		}
@@ -143,6 +150,10 @@ botao criaBotaoTerminar(){
 }
 
 int main(){
+	color[0] = 1.0f;
+	color[1] = 1.0f;
+	color[2] = 1.0f;
+	acceptInput = true;
 	try{
 		dm.init(WIDTH,HEIGHT);
 

@@ -10,12 +10,13 @@ void botao::set(
 		unsigned int indexCount,
 		void (*func)(void))
 {
+	float color[3] = {1.0f,1.0f,1.0f};
 	position.resize(posCount*2);
 	for(int i=0;i<posCount*2;i++){
 		position[i] = pos[i];
 	}
 	action = func;
-	ID.start(pos,index,posCount,2,indexCount,GL_TRIANGLES);
+	ID.start(pos,index,posCount,2,indexCount,GL_TRIANGLES,GL_STATIC_DRAW,color);
 }
 
 bool botao::inside(int x, int y){

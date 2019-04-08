@@ -134,6 +134,7 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 
 void DisplayManager::run(){
 	setClearColor(0.0f,1.0f,0.0f);
+	int colorLocation = glGetUniformLocation(shaderProgram, "color");
 	while(!glfwWindowShouldClose(window)){
 		//processamento de inputs
 		processInput(window);
@@ -142,6 +143,7 @@ void DisplayManager::run(){
 		//renderizacao
 		for(int i=0;i<VAO_array.size();i++){
 			glBindVertexArray(VAO_array[i].VAO_ID);
+			glUniform3fv(colorLocation, 1, VAO_array[i].color);
 			if(VAO_array[i].uses_index){
 				glDrawElements(VAO_array[i].drawStyle,VAO_array[i].indexCount,GL_UNSIGNED_INT,0);
 			}else{
