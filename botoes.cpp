@@ -15,7 +15,7 @@ void botao::set(
 		position[i] = pos[i];
 	}
 	action = func;
-	ID.set(pos,index,posCount,2,indexCount,GL_TRIANGLES);
+	ID.start(pos,index,posCount,2,indexCount,GL_TRIANGLES);
 }
 
 bool botao::inside(int x, int y){
@@ -94,3 +94,6 @@ botao::botao():
 	minY(-1),
 	maxY(-1)
 {}
+
+botao::~botao(){
+}

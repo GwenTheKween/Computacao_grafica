@@ -12,6 +12,7 @@ private:
 public:
 	botao();
 	botao(float*,unsigned int*, unsigned int, unsigned int, void (*func)(void));
+	~botao();
 
 	void set(float*,unsigned int*, unsigned int, unsigned int, void(*func)(void));
 

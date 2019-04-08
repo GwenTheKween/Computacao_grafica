@@ -42,7 +42,7 @@ public:
 	GLFWwindow* getWindow(){return window;}
 	unsigned int getShader(){return shaderProgram;}
 
-	void clearWindow(float,float,float);
+	void setClearColor(float,float,float);
 };
 
 #endif

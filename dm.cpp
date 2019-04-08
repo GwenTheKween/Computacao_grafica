@@ -63,8 +63,11 @@ void compileShader(unsigned int shader, const char* filename){
 
 
 DisplayManager::DisplayManager(){
+	//seta o tamanho da janela como algo impossivel
 	dimensions[0]=-1;
 	dimensions[1]=-1;
+
+	//inicia glfw
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -74,8 +77,8 @@ DisplayManager::DisplayManager(){
 
 DisplayManager::~DisplayManager(){
 	while(!VAO_array.empty()){
-	deregister_VAO(VAO_array[0].VAO_ID);
-}
+		deregister_VAO(VAO_array[0].VAO_ID);
+	}
 glfwTerminate();
 }
 
@@ -130,9 +133,11 @@ void DisplayManager::init(int WIDTH, int HEIGHT, const char* title){
 }
 
 void DisplayManager::run(){
+	setClearColor(0.0f,1.0f,0.0f);
 	while(!glfwWindowShouldClose(window)){
 		//processamento de inputs
 		processInput(window);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		//renderizacao
 		for(int i=0;i<VAO_array.size();i++){
@@ -166,7 +171,7 @@ void DisplayManager::deregister_VAO(int VAO_ID){
 	if(i == VAO_array.size()){
 		return; //ID passado nao foi encontrado, ou nao esta ativo
 	}
-	VAO_array[i].unset();
+	VAO_array[i].finish();
 	VAO_array.erase(VAO_array.begin()+i);
 }
 
@@ -175,10 +180,6 @@ void DisplayManager::registerMouseButtonCallback(void (*mouseFunc)(GLFWwindow*,i
 	glfwSetMouseButtonCallback(window,mouseFunc);
 }
 
-//funcao que limpa a janela
-void DisplayManager::clearWindow(float r, float g, float b){
+void DisplayManager::setClearColor(float r, float g, float b){
 	glClearColor(r,g,b,1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glfwSwapBuffers(window);
-	glClear(GL_COLOR_BUFFER_BIT);
 }
