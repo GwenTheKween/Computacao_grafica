@@ -36,22 +36,28 @@ int currButtonPress;
 
 //Vertice com as cores dos botoes:
 float buttonColor[18][3]={
+	//primeira tentativa de paleta, ficou meio estranha
 	{0.1f,0.1f,0.1f},
-	{0.0f,0.0f,0.25f},
-	{0.0f,0.25f,0.0f},
 	{0.0f,0.25f,0.25f},
-	{0.25f,0.0f,0.0f},
-	{0.25f,0.0f,0.25f},
-	{0.25f,0.25f,0.0f},
-	{0.25f,0.25f,0.25f},
-	{0.5f,0.5f,0.5f},
-	{0.5f,0.5f,0.75f},
-	{0.5f,0.75f,0.5f},
-	{0.5f,0.75f,0.75f},
+	{0.0f,0.5f,0.0f},
+	{0.0f,0.75f,0.25f},
+
+	{0.25f,0.0f,0.5f},
+	{0.25f,0.25f,0.75f},
+	{0.25f,0.5f,0.5f},
+	{0.25f,0.75f,0.75f},
+
+	{0.5f,0.0f,0.0f},
+	{0.5f,0.25f,0.25f},
+	{0.5f,0.5f,0.0f},
+	{0.5f,0.75f,0.25f},
+
+	{0.75f,0.0f,0.5f},
+	{0.75f,0.25f,0.75f},
 	{0.75f,0.5f,0.5f},
-	{0.75f,0.5f,0.75f},
-	{0.75f,0.75f,0.5f},
 	{0.75f,0.75f,0.75f},
+
+
 	{1.0f,1.0f,1.0f},
 	{1.0f,1.0f,1.0f}
 };
@@ -196,8 +202,6 @@ botao criaBotaoTerminar(){
 	9	a	b	c
 	d	e	f	g
 */
-
-void nada(){}
 
 botao criaBotaoCor(int numero){
 	float x,y;

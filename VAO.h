@@ -118,7 +118,6 @@ struct VAO_INFO{
 	VAO_INFO operator = (const VAO_INFO other){
 		drawStyle = other.drawStyle;
 		indexCount = other.indexCount;
-		uses_index = other.uses_index;
 		color[0] = other.color[0];
 		color[1] = other.color[1];
 		color[2] = other.color[2];
