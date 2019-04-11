@@ -1,4 +1,5 @@
 #include "botoes.h"
+#include "AET.h"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -68,13 +69,13 @@ float buttonColor[18][3]={
 void finishPolygon(){ //funcao do botao de termino do 
 	std::vector<float> polygon;
 	//CHAMADA DE FUNCAO DO LUIS
-	//poligon = PoliFill(input_coordinates);
+	polygon = PoliFill(input_coordinates);
 
 	dm.deregister_VAO(input_draw);
 	//exemplo para teste:
-	polygon = input_coordinates;
+	//polygon = input_coordinates;
 
-	poly.start(input_coordinates,2,GL_LINE_LOOP,GL_STATIC_DRAW,input_draw.color);
+	poly.start(polygon,2,GL_POINTS,GL_STATIC_DRAW,input_draw.color);
 
 	dm.register_VAO(poly);
 

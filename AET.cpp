@@ -57,19 +57,12 @@ void desenhaPixel(float x1, float x2) {
     
     //preenche o bloco da linha de varredura de x1 ate x2
     for (int i = ((height * (width - varredura)) + i1); i < ((height * (width - varredura)) + i2); i++, count++) {
-        //DEBUG:
-        cout << "proximo pixel " << (i1 + count) << ", " << varredura << endl;
         //pixelsInternos.push_back(tuple<int, int>((i1 + count), varredura));
         x = (float) i1 + count;
         y = (float) varredura;
-        //DEBUG:
-        //cout << "transformando em float..." << endl;
-        //cout << x << " - " << y << endl;
         pixelsInternos.push_back((float)x);
         pixelsInternos.push_back((float)y);
     }
-    //DEBUG:
-    cout << "bloco desenhado." << endl;
 }
 
 // remove arestas da AET se ymax = y da varredura
@@ -113,11 +106,7 @@ void inicializaAlgVarredura() {
 // ordena arestas para saber quais arestas a linha de varredura intercepta
 void ordenar_e_preencherArestas_ET() {
     sort(ET.begin(), ET.end(), ordenaymin());
-    //DEBUG:
-    cout << "buckets preenchidos" << endl;
     for (vector<arestas>::iterator it = ET.begin(); it < ET.end(); it++) {
-        //DEBUG: Preenchimento ET
-        cout << it->ymin << " -> " << it->ymax << ", " << it->xval << endl; 
         // caso inclinacao = 0 entao temos uma linha horizontal, 
         // nao precisamos tratar no algoritmo no algoritmo AET pois essa eh uma borda externa do poligono
         if (it->inclinacao == 0) {
@@ -133,12 +122,8 @@ void ordenaAETxval() {
 
 // encontra as interseccoes da linha de varredura, preenche o bloco e atualiza
 void preencherPoligono() {
-    //DEBUG:
-    cout << "Preenchendo Poligno..." << endl;
     while (AET.size() != 0) {
         for (vector<arestas>::iterator it = AET.begin(); it < AET.end(); it++) {
-            //DEBUG:
-            cout << "Desenha de " << it->xval << " para " << (it+1)->xval << endl;
             desenhaPixel(it->xval, (it+1)->xval);
             it++;
         }
@@ -155,67 +140,33 @@ void criarET(vector<float> input) {
 
     int i,x,y;
 
-    cout << "convertendo vetor input..." << endl;
     for(i = 0 ; i < (int) input.size()-1; i+=2) {
         x = (int) input.at(i);
         y = (int) input.at(i+1);
-        cout << x << " - " << y << endl;
         pontos.push_back(tuple<int, int>(x, y));
     }
 
-    //DEBUG:
-    cout << "Lendo vetor de pontos" << endl;
 
     for(i=0; i<(int)pontos.size()-1;i++) {
         arestas nAresta(pontos.at(i), pontos.at(i+1));
-        //DEBUG: printa na tela vetor de pontos digitados pelo usuario
-        cout << get<0>(pontos.at(i)) << " - " << get<1>(pontos.at(i)) << ", " << get<0>(pontos.at(i+1)) << " - " << get<1>(pontos.at(i+1)) << endl;
         ET.push_back(nAresta);
     }
 
     //fecha o poligono ligando o primeiro e o ultimo ponto do poligono
     arestas nAresta(pontos.at(0), pontos.at(pontos.size()-1));
-    //DEBUG:
-    cout << get<0>(pontos.at(0)) << " - " << get<1>(pontos.at(0)) << ", " << get<0>(pontos.at(pontos.size()-1)) << " - " << get<1>(pontos.at(pontos.size()-1)) << endl;
     ET.push_back(nAresta);
 }
 
-//not working yet
-/*void desenha_borda_do_poligono(void) {
-    //DEBUG:
-    cout << "desenhando borda do poligono" << endl;
-    //usar linha para desenhar parte borda do poligono
-    for (int i = 0; i < (int) pontos.size(); i++) {
-        //DEBUG:
-        cout << get<0>(pontos.at(i)) << " - " << get<1>(pontos.at(i)) << endl;
-    }
-    //DEBUG:
-    cout << "pixels internos do poligno" << endl;
-    for (int i = 0; i < (int) pixelsInternos.size(); i++) {
-        //DEBUG:
-        cout << get<0>(pixelsInternos.at(i)) << " - " << get<1>(pixelsInternos.at(i)) << ", ";
-    }
-}*/
 
 vector<float> PoliFill(vector<float> input_coordinates) {
 //int main(int argc, char **argv) {
 
-    //DEBUG: setando coordenadas na mao
-    //vector<float> input_coordinates;
 
-    //input_coordinates.push_back((float)2.0);
-	//input_coordinates.push_back((float)3.0);
-    //input_coordinates.push_back((float)7.0);
-	//input_coordinates.push_back((float)1.0);
-    //input_coordinates.push_back((float)13.0);
-	//input_coordinates.push_back((float)5.0);
-    //input_coordinates.push_back((float)13.0);
-	//input_coordinates.push_back((float)11.0);
-    //input_coordinates.push_back((float)7.0);
-	//input_coordinates.push_back((float)7.0);
-    //input_coordinates.push_back((float)1.0);
-	//input_coordinates.push_back((float)9.0);
-
+	//confirma que os vectors estao vazios
+	pixelsInternos.clear();
+	pontos.clear();
+	ET.clear();
+	AET.clear();
     //cria pontos(pega da tela) e insere na ET em ordem de chegada
     criarET(input_coordinates);
     //ordena ET em relacao a ymin dos pontos inseridos
@@ -224,7 +175,5 @@ vector<float> PoliFill(vector<float> input_coordinates) {
     atualizaAET();
     preencherPoligono();
     //desenha_borda_do_poligono();
-    //DEBUG:
-    cout << "Acabou!!!" << endl;
     return pixelsInternos;
 }
