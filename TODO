@@ -1,0 +1,16 @@
+Classes para as primitivas:
+	cubo
+	cilindro
+	esfera
+	piramide
+
+menu de contexto
+	mover todas as opcoes de botoes para o menu de contexto
+
+Adicionar rolamento do mouse para mover no eixo Z
+
+Adicionar mudanca de camera
+
+Algoritmo de phong
+
+Adicionar mudanca da fonte de luz

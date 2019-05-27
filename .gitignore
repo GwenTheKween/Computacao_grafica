@@ -1,3 +1,5 @@
 *.o
 PoliFill
 vgcore*
+.ycm*
+Ilumination

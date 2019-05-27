@@ -1,8 +1,8 @@
 COMP = g++
 COMPFLAG = -O3 -std=c++17 -c -g
 LINKFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
-NOME = PoliFill
-CFILES = dm.cpp main.cpp botoes.cpp AET.cpp
+NOME = Ilumination
+CFILES = dm.cpp main.cpp botoes.cpp
 OFILES = $(CFILES:.cpp=.o) glad.o
 
 all: $(NOME)
