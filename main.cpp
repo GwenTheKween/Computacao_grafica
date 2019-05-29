@@ -63,6 +63,14 @@ float buttonColor[18][3]={
 	{1.0f,1.0f,1.0f}
 };
 
+enum MENU_TYPES{
+	FINISH,
+	EXIT,
+	MENU_TYPE_SIZE
+};
+
+char* MENU_NAMES = {"finish", "exit"};
+
 //==============================================================================================================================================
 //Funcoes usadas pelos botoes
 
