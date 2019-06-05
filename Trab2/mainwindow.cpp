@@ -1,13 +1,27 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QCheckBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    resetEverything();
+
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setProfile(QSurfaceFormat::CompatibilityProfile);
+    format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+
+    this->ui->canvasOpenGL->setFormat(format);
+
+    this->updateStatusBar("Use esse método para dar feedback das interações na barra de status.");
+
+    QTimer::singleShot( // o timer é apenas demonstrativo
+        5000,
+        this,
+        SLOT( clearStatusBar() ) // E utilize esse para limpar a barra de status
+    );
+
 }
 
 MainWindow::~MainWindow()
@@ -15,48 +29,136 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::resetEverything(){
-    setIlum(FLAT);
+void MainWindow::updateStatusBar(QString message) {
+    this->ui->statusBar->showMessage(message);
 }
 
-void MainWindow::on_quitPushButton_clicked()
+void MainWindow::clearStatusBar() {
+    this->ui->statusBar->clearMessage();
+}
+
+
+// OBSERVER
+void MainWindow::on_obsX_valueChanged(double arg1)
 {
-    exit(0);
+    (void) arg1;
 }
 
-void MainWindow::setIlum(iluminations ilum){
-    currIlum = ilum;
-    if(ilum == FLAT){
-        ui->flatCheckBox->setChecked(true);
-        ui->gouradCheckBox->setChecked(false);
-        ui->phongCheckBox->setChecked(false);
-    }else if(ilum == GOURAD){
-        ui->flatCheckBox->setChecked(false);
-        ui->gouradCheckBox->setChecked(true);
-        ui->phongCheckBox->setChecked(false);
-    }else if(ilum == PHONG){
-        ui->flatCheckBox->setChecked(false);
-        ui->gouradCheckBox->setChecked(false);
-        ui->phongCheckBox->setChecked(true);
-    }
-}
-
-void MainWindow::on_resetPushButton_clicked()
+void MainWindow::on_obsY_valueChanged(double arg1)
 {
-    resetEverything();
+    (void) arg1;
 }
 
-void MainWindow::on_flatPushButton_clicked()
+void MainWindow::on_obsZ_valueChanged(double arg1)
 {
-    setIlum(FLAT);
+    (void) arg1;
 }
 
-void MainWindow::on_gouradPushButton_clicked()
+// LIGHTING
+void MainWindow::on_lightingXValue_valueChanged(double arg1)
 {
-    setIlum(GOURAD);
+    (void) arg1;
 }
 
-void MainWindow::on_phongPushButton_clicked()
+void MainWindow::on_lightingYValue_valueChanged(double arg1)
 {
-    setIlum(PHONG);
+    (void) arg1;
+}
+
+void MainWindow::on_lightingZValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+// VIEWING
+void MainWindow::on_xMinValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_xMaxValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_yMinValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+
+void MainWindow::on_yMaxValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_nearValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_farValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_fovyValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_isPerspective_stateChanged(int arg1)
+{
+    (void) arg1;
+}
+
+// DRAWING
+void MainWindow::on_drawingRValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_drawingGValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_drawingBValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_drawingZValue_valueChanged(double arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_drawingCheckBox_stateChanged(int arg1)
+{
+    (void) arg1;
+}
+
+void MainWindow::on_undo_clicked()
+{
+
+}
+
+void MainWindow::on_confirm_clicked()
+{
+
+}
+
+void MainWindow::on_toningValue_currentIndexChanged(int index)
+{
+    (void) index;
+}
+
+void MainWindow::on_clear_clicked()
+{
+
+}
+
+void MainWindow::on_reset_clicked()
+{
+
 }

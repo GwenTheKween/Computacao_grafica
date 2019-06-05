@@ -2,16 +2,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
+#include <QEventLoop>
+#include <QtDebug>
+
+using namespace std;
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
-
-enum iluminations{
-    FLAT,
-    GOURAD,
-    PHONG
-};
 
 class MainWindow : public QMainWindow
 {
@@ -21,24 +20,62 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void resetEverything();
-
 private slots:
-    void on_quitPushButton_clicked();
+    void on_obsX_valueChanged(double arg1);
 
-    void on_resetPushButton_clicked();
+    void on_obsY_valueChanged(double arg1);
 
-    void on_flatPushButton_clicked();
+    void on_obsZ_valueChanged(double arg1);
 
-    void on_gouradPushButton_clicked();
+    void on_lightingXValue_valueChanged(double arg1);
 
-    void on_phongPushButton_clicked();
+    void on_lightingYValue_valueChanged(double arg1);
+
+    void on_lightingZValue_valueChanged(double arg1);
+
+    void on_xMinValue_valueChanged(double arg1);
+
+    void on_xMaxValue_valueChanged(double arg1);
+
+    void on_yMinValue_valueChanged(double arg1);
+
+    void on_yMaxValue_valueChanged(double arg1);
+
+    void on_nearValue_valueChanged(double arg1);
+
+    void on_farValue_valueChanged(double arg1);
+
+    void on_fovyValue_valueChanged(double arg1);
+
+    void on_isPerspective_stateChanged(int arg1);
+
+    void on_drawingRValue_valueChanged(double arg1);
+
+    void on_drawingGValue_valueChanged(double arg1);
+
+    void on_drawingBValue_valueChanged(double arg1);
+
+    void on_drawingZValue_valueChanged(double arg1);
+
+    void on_drawingCheckBox_stateChanged(int arg1);
+
+    void on_undo_clicked();
+
+    void on_confirm_clicked();
+
+    void on_toningValue_currentIndexChanged(int index);
+
+    void on_clear_clicked();
+
+
+    void on_reset_clicked();
 
 private:
-    int currIlum;
-
     Ui::MainWindow *ui;
-    void setIlum(iluminations ilum);
+
+private slots:
+    void updateStatusBar (QString message);
+    void clearStatusBar ();
 };
 
 #endif // MAINWINDOW_H
