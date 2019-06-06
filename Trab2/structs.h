@@ -15,7 +15,7 @@ typedef struct Edge {
 } Edge;
 
 typedef struct Polygon {
-    vector<float[3]> *vertices;
+    vector<vector<float> > vertices;
     float color[4];
 } Polygon;
 

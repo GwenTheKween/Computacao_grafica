@@ -135,7 +135,7 @@ void MainWindow::on_drawingZValue_valueChanged(double arg1)
 
 void MainWindow::on_drawingCheckBox_stateChanged(int arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->toggleDrawing();
 }
 
 void MainWindow::on_undo_clicked()

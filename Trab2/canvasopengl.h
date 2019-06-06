@@ -11,6 +11,7 @@
 #include <QPoint>
 #include <QVector3D>
 #include <QMatrix4x4>
+#include <QDebug>
 
 // C Libs
 #include <vector>
@@ -26,9 +27,12 @@ using namespace std;
 class CanvasOpenGL : public QOpenGLWidget
 {
 public:
-    CanvasOpenGL();
+    CanvasOpenGL(QWidget*);
+
+    void toggleDrawing();
 
 private:
+    bool drawing;
     // VIEWING
     GLint height, width;
     GLdouble
@@ -47,12 +51,14 @@ private:
     QPoint lastPos;
     void LookAt();
 
-    // polygon
+    //poligonos
     Polygon* currentPolygon;
     vector<Polygon*> polygons;
 
     // SCANLINE
-    void drawLines(vector<QVector3D> *vertices);
+    void drawLines(vector<vector<float> > &vertices);
+    void lineLow(int, int, int, int);
+    void lineHigh(int, int, int, int);
     void fillPoligon(Polygon* polygon);
 
     // ADT
@@ -60,7 +66,7 @@ private:
     vector<GLint> activeEdgeList;
 
     // HELPERS
-    const GLdouble pi = 3.1415926535897932384626433832795;
+    const GLdouble pi = 4*atan(1); //mesma precisao, mais facil de entender.
     GLdouble euclidean (QVector3D, QVector3D);
     void reset();
 
