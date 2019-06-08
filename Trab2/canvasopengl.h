@@ -28,11 +28,20 @@ class CanvasOpenGL : public QOpenGLWidget
 {
 public:
     CanvasOpenGL(QWidget*);
+    ~CanvasOpenGL();
 
     void toggleDrawing();
+    void commitPolygon();
+    void setZ(double);
+
+    void setRColor(double);
+    void setGColor(double);
+    void setBColor(double);
 
 private:
     bool drawing;
+    float currZ;
+    float currColor[3];
     // VIEWING
     GLint height, width;
     GLdouble

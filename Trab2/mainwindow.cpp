@@ -115,22 +115,22 @@ void MainWindow::on_isPerspective_stateChanged(int arg1)
 // DRAWING
 void MainWindow::on_drawingRValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setRColor(arg1);
 }
 
 void MainWindow::on_drawingGValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setGColor(arg1);
 }
 
 void MainWindow::on_drawingBValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setBColor(arg1);
 }
 
 void MainWindow::on_drawingZValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setZ(arg1);
 }
 
 void MainWindow::on_drawingCheckBox_stateChanged(int arg1)
@@ -145,7 +145,7 @@ void MainWindow::on_undo_clicked()
 
 void MainWindow::on_confirm_clicked()
 {
-
+    ui->canvasOpenGL->commitPolygon();
 }
 
 void MainWindow::on_toningValue_currentIndexChanged(int index)
