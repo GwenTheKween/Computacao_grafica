@@ -29,7 +29,15 @@ void CanvasOpenGL::resetParameters()
     }
     currColor[0]=currColor[1] = currColor[2] = 0;
     light[0] = light[1] = light[2] = 0;
-    observer[0] = observer[1] = observer[2] = 2;
+    eye.setX(0);
+    eye.setY(0);
+    eye.setZ(0);
+    center.setX(0);
+    center.setY(0);
+    center.setZ(-1);
+    up.setX(0);
+    up.setY(-1);
+    up.setZ(0);
     currTone = 0;
     minX = DEFAULTMINX;
     maxX = DEFAULTMAXX;
@@ -89,6 +97,7 @@ void CanvasOpenGL::clearPolygons(){
         delete polygons[i];
     }
     polygons.clear();
+    update();
 }
 
 //==============================================================================================================================
@@ -138,7 +147,16 @@ void CanvasOpenGL::setTonning(int val){
 }
 
 void CanvasOpenGL::setObserver(int index, double val){
-    observer[index] = val;
+    switch(index){
+        case 0:
+            eye.setX(val);
+            break;
+        case 1:
+            eye.setY(val);
+            break;
+        case 2:
+            eye.setZ(val);
+    }
 }
 
 void CanvasOpenGL::setParameters()
@@ -180,7 +198,10 @@ void CanvasOpenGL::perspectiveGL()
 //==============================================================================================================================
 //Funcao auxiliar para desenhar
 void CanvasOpenGL::LookAt(){
-
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    QMatrix4x4 lookAtMatrix;
+    lookAtMatrix.lookAt(eye,center,up);
 }
 
 //==============================================================================================================================
@@ -284,11 +305,25 @@ void CanvasOpenGL::resizeGL(GLint w, GLint h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    glOrtho(minX,maxX,maxY,minY,minZ,maxZ);
 }
 
 void CanvasOpenGL::paintGL() {
     glClearColor(0.0,0.0,0.0,0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(perspective && !drawing){
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        GLdouble FW,FH;
+        FH = tan(fovY/360 * pi)*maxZ;
+        FW = FH * aspect;
+        glFrustum(-FW,FW,-FH,FH,minZ,maxZ);
+    }else{
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(minX,maxX,maxY,minY,minZ,maxZ);
+    }
+    //this->LookAt();
     if(drawing){
         glBegin(GL_POINTS);
         glPointSize(5.0f);
@@ -296,13 +331,6 @@ void CanvasOpenGL::paintGL() {
         if(currentPolygon->vertices.size() > 1)
             drawLines(currentPolygon->vertices);
         glEnd();
-    }else if(perspective){
-        GLdouble FW,FH;
-        FH = tan(fovY/360 * pi)*maxZ;
-        FW = FH * aspect;
-        glFrustum(-FW,FW,-FH,FH,minZ,maxZ);
-    }else{
-        glOrtho(minX,maxX,minY,maxY,minZ,maxZ);
     }
     for(unsigned int i=0;i<polygons.size(); i++){
         //essa secao esta aqui por motivos de debug. Aqui que vai ser colocada a chamada para fill polygon
@@ -328,6 +356,7 @@ void CanvasOpenGL::mousePressEvent(QMouseEvent *event)
         vec[0] = event->x();
         vec[1] = event->y();
         vec[2] = 0;
+        qDebug()<<event->x() << event->y();
         currentPolygon->vertices.push_back(vec);
         this->update();
     }

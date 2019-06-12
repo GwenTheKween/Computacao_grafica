@@ -58,7 +58,6 @@ private:
     double  currColor[3];
     double light[3];
     int currTone;
-    double observer[3];
     // VIEWING
     GLint height, width;
     GLdouble
@@ -70,7 +69,7 @@ private:
     void perspectiveGL();
 
     // OBSERVER
-    QVector3D *up, *eye, *center;
+    QVector3D up, eye, center;
     GLfloat xRot, yRot, zRot;
     QPoint lastPos;
     void LookAt();
