@@ -41,65 +41,65 @@ void MainWindow::clearStatusBar() {
 // OBSERVER
 void MainWindow::on_obsX_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setObserver(0,arg1);
 }
 
 void MainWindow::on_obsY_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setObserver(1,arg1);
 }
 
 void MainWindow::on_obsZ_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setObserver(2,arg1);
 }
 
 // LIGHTING
 void MainWindow::on_lightingXValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setLightX(arg1);
 }
 
 void MainWindow::on_lightingYValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setLightY(arg1);
 }
 
 void MainWindow::on_lightingZValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setLightZ(arg1);
 }
 
 // VIEWING
 void MainWindow::on_xMinValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(0, arg1);
 }
 
 void MainWindow::on_xMaxValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(1,arg1);
 }
 
 void MainWindow::on_yMinValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(2,arg1);
 }
 
 
 void MainWindow::on_yMaxValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(3,arg1);
 }
 
 void MainWindow::on_nearValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(4,arg1);
 }
 
 void MainWindow::on_farValue_valueChanged(double arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->setPerspective(5,arg1);
 }
 
 void MainWindow::on_fovyValue_valueChanged(double arg1)
@@ -109,7 +109,7 @@ void MainWindow::on_fovyValue_valueChanged(double arg1)
 
 void MainWindow::on_isPerspective_stateChanged(int arg1)
 {
-    (void) arg1;
+    ui->canvasOpenGL->toggleProjection();
 }
 
 // DRAWING
@@ -135,12 +135,13 @@ void MainWindow::on_drawingZValue_valueChanged(double arg1)
 
 void MainWindow::on_drawingCheckBox_stateChanged(int arg1)
 {
+    (void) arg1;
     ui->canvasOpenGL->toggleDrawing();
 }
 
 void MainWindow::on_undo_clicked()
 {
-
+    ui->canvasOpenGL->undoPolygon();
 }
 
 void MainWindow::on_confirm_clicked()
@@ -155,10 +156,10 @@ void MainWindow::on_toningValue_currentIndexChanged(int index)
 
 void MainWindow::on_clear_clicked()
 {
-
+    ui->canvasOpenGL->clearPolygons();
 }
 
 void MainWindow::on_reset_clicked()
 {
-
+    ui->canvasOpenGL->resetParameters();
 }

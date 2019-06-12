@@ -4,6 +4,13 @@
 #include <vector>
 #include <QPoint>
 
+#define DEFAULTMINX 0
+#define DEFAULTMAXX 800
+#define DEFAULTMINY 0
+#define DEFAULTMAXY 600
+#define DEFAULTMINZ -1
+#define DEFAULTMAXZ 10
+
 using namespace std;
 
 typedef struct Edge {
@@ -16,7 +23,7 @@ typedef struct Edge {
 
 typedef struct Polygon {
     vector<vector<float> > vertices;
-    float color[4];
+    double color[4];
 } Polygon;
 
 enum ShadingMethods {

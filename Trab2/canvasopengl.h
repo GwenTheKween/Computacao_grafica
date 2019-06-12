@@ -31,27 +31,42 @@ public:
     ~CanvasOpenGL();
 
     void toggleDrawing();
+    void undoPolygon();
     void commitPolygon();
     void setZ(double);
 
     void setRColor(double);
     void setGColor(double);
     void setBColor(double);
+    void resetParameters();
+
+    void setLightX(double);
+    void setLightY(double);
+    void setLightZ(double);
+    void setTonning(int val);
+
+    void toggleProjection ();
+    void setViewport();
+    void setObserver(int,double);
+
+    void clearPolygons();
+    void setPerspective(int,double);
 
 private:
-    bool drawing;
-    float currZ;
-    float currColor[3];
+    bool drawing, perspective;
+    double  currZ;
+    double  currColor[3];
+    double light[3];
+    int currTone;
+    double observer[3];
     // VIEWING
     GLint height, width;
     GLdouble
-        hMin,   hMax,
-        vMin,   vMax,
-        near,   far,
+        minX,   maxX,
+        minY,   maxY,
+        minZ,   maxZ,
         aspect, fovY;
     void setParameters();
-    void resetParameters();
-    void toggleProjection ();
     void perspectiveGL();
 
     // OBSERVER
@@ -77,7 +92,6 @@ private:
     // HELPERS
     const GLdouble pi = 4*atan(1); //mesma precisao, mais facil de entender.
     GLdouble euclidean (QVector3D, QVector3D);
-    void reset();
 
 protected:
     // OpenGL
