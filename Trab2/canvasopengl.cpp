@@ -292,7 +292,29 @@ void CanvasOpenGL::drawLines(vector<vector<float> > &vertices)
 //funcao para preencher um poligono
 void CanvasOpenGL::fillPoligon(Polygon* polygon)
 {
-    (void) polygon;
+    vector<float> poligonFace;
+    int facesNumber = Polygon->vertices.size/2;
+
+    //face frontal do poligno
+    for(int i = 0; i<facesNumber-1; i++) {
+        
+    }
+    PoliFill(poligonFace);
+    poligonFace.clear()
+
+    //preenche faces laterais do poligono
+    //for(int i = 0; i<facesNumber-3; i++) {
+        
+        //PoliFill(poligonFace);
+    //}
+
+    //face atras do poligono
+    for(int i = 0; i<facesNumber-1; i++) {
+        
+    }
+    PoliFill(poligonFace);
+    poligonFace.clear()
+    //(void) polygon;
 }
 
 //==============================================================================================================================
