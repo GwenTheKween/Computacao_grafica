@@ -292,28 +292,102 @@ void CanvasOpenGL::drawLines(vector<vector<float> > &vertices)
 //funcao para preencher um poligono
 void CanvasOpenGL::fillPoligon(Polygon* polygon)
 {
-    vector<float> poligonFace;
+    vector<float> poligonPoints;
+    vector<float> poligonFaceXY;
+    vector<float> poligonFaceXYZ;
     int facesNumber = Polygon->vertices.size/2;
+    Polygon *poligonFaces = NULL;
+    int z_position = 0;
+    int x_init = 0;
+    int x_end = 0;
 
-    //face frontal do poligno
-    for(int i = 0; i<facesNumber-1; i++) {
-        
+    //face frontal do poligno, fixa o eixo z e trabalha xy
+    for(int i = 0; i<facesNumber; i++) {
+        poligonPoints.push_back(Polygon->vertices[i][0]);
+        poligonPoints.push_back(Polygon->vertices[i][1]);
     }
-    PoliFill(poligonFace);
-    poligonFace.clear()
-
-    //preenche faces laterais do poligono
-    //for(int i = 0; i<facesNumber-3; i++) {
-        
-        //PoliFill(poligonFace);
-    //}
-
-    //face atras do poligono
-    for(int i = 0; i<facesNumber-1; i++) {
-        
+    z_position = Polygon->vertices[0][2];
+    poligonFaceXY = PoliFill(poligonPoints);
+    //acrescenta o eixo Z no vetor de pontos para preenchimento da face frontal
+    for(int i = 0; i<poligonFaceXY.size-1; i+=2) {
+        poligonFaceXYZ.push_back(poligonFaceXY[i]);
+        poligonFaceXYZ.push_back(poligonFaceXY[i+1]);
+        poligonFaceXYZ.push_back(z_position);
     }
-    PoliFill(poligonFace);
-    poligonFace.clear()
+    //adiciona face frontal ao poligono com todas as faces
+    poligonFaces->vertices.push_back(poligonFaceXYZ);
+    poligonPoints.clear();
+    poligonFaceXY.clear();
+    poligonFaceXYZ.clear();
+    
+
+    //preenche faces laterais do poligono, fixa o eixo x e trabalha yz
+    //eixo z vira x e eixo y continua sendo y para o algoritmo scanline
+    //cada face lateral eh indicada por 4 pontos, sendo dois da face fronta e dois da face de fundo
+    for(int i = 0; i<facesNumber; i++) {
+        //faces laterais menos a ultima face que eh a ligacao do ultimo com o primeiro
+        if(i<facesNumber-1) {
+            poligonPoints.push_back(Polygon->vertices[i][2]);
+            poligonPoints.push_back(Polygon->vertices[i][1]);
+            poligonPoints.push_back(Polygon->vertices[i+1][2]);
+            poligonPoints.push_back(Polygon->vertices[i+1][1]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber][2]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber][1]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber+1][2]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber+1][1]);
+            //salva x inicial e final dos pontos da face frontal para calculo dos valores de x relativos a yz
+            //ponto x varia de um pixel a cada linha do scanline ateh chegar no x do ponto final da face frontal
+            x_init = Polygon->vertices[i][0];
+            x_end = Polygon->vertices[i+1][0];
+        //ultima face do poligono
+        }else {
+            poligonPoints.push_back(Polygon->vertices[i][2]);
+            poligonPoints.push_back(Polygon->vertices[i][1]);
+            poligonPoints.push_back(Polygon->vertices[0][2]);
+            poligonPoints.push_back(Polygon->vertices[0][1]);
+            poligonPoints.push_back(Polygon->vertices[facesNumber][2]);
+            poligonPoints.push_back(Polygon->vertices[facesNumber][1]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber][2]);
+            poligonPoints.push_back(Polygon->vertices[i+facesNumber][1]);
+            x_init = Polygon->vertices[i][0];
+            x_end = Polygon->vertices[0][0];
+        }    
+        poligonFaceXY = PoliFill(poligonPoints);
+        if(x_init != x_end) {
+            //calcula o x para cada yz da face onde o x eh o x anterior + 1 pixel ate chegar no x final
+            for(int i = 0; i<poligonFaceXY.size-1; i+=2) {
+                poligonFaceXYZ.push_back(x_init);
+                poligonFaceXYZ.push_back(poligonFaceXY[i+1]);
+                poligonFaceXYZ.push_back(poligonFaceXY[i]);
+                if((poligonFaceXY[i+1] != poligonFaceXY[i+2]) && (x_init < x_end))
+                    x_init++;
+                
+            }        
+        }
+        poligonFaces->vertices.push_back(poligonFaceXYZ);
+        poligonPoints.clear();
+        poligonFaceXY.clear();
+        poligonFaceXYZ.clear();
+    }
+
+    //face do fundo do poligono fixa o eixo z e trabalha xy
+    for(int i = 0; i<facesNumber; i++) {
+        poligonPoints.push_back(Polygon->vertices[i][0]);
+        poligonPoints.push_back(Polygon->vertices[i][1]);
+    }
+    z_position = Polygon->vertices[0][2];
+    poligonFaceXY = PoliFill(poligonPoints);
+    //acrescenta o eixo Z no vetor de pontos para preenchimento da face de fundo
+    for(int i = 0; i<poligonFaceXY.size-1; i+=2) {
+        poligonFaceXYZ.push_back(poligonFaceXY[i]);
+        poligonFaceXYZ.push_back(poligonFaceXY[i+1]);
+        poligonFaceXYZ.push_back(z_position);
+    }
+    //adiciona face de fundo ao poligono com todas as faces
+    poligonFaces->vertices.push_back(poligonFaceXYZ);
+    poligonPoints.clear();
+    poligonFaceXY.clear();
+    poligonFaceXYZ.clear();
     //(void) polygon;
 }
 
